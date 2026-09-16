@@ -1,0 +1,91 @@
+/* GÉNÉRÉ par scripts/generate-theme-css.mjs — ne pas éditer à la main.
+   Source : tokens/colors.json. Voir docs/08-DESIGN-SYSTEM.md.
+   Le mode sombre n'est pas un inversement automatique : chaque valeur est choisie. */
+:root {
+  --fut-violet: #7c3aed;
+  --fut-violet-deep: #5b21b6;
+  --fut-sky: #38bdf8;
+  --fut-sky-deep: #0284c7;
+  --fut-ink: #0b0a14;
+  --fut-surface-app: #fafafc;
+  --fut-surface-card: #ffffff;
+  --fut-surface-raised: #f4f2ff;
+  --fut-surface-border: #e8e5f5;
+  --fut-text-primary: #0b0a14;
+  --fut-text-secondary: #52506b;
+  --fut-text-muted: #8b89a3;
+  --fut-domain-intelligence: #2a78d6;
+  --fut-domain-physique: #eb6834;
+  --fut-domain-vitesse: #1baf7a;
+  --fut-domain-education: #eda100;
+  --fut-domain-mental: #e87ba4;
+  --fut-domain-social: #008300;
+  --fut-domain-technique: #7c3aed;
+  --fut-domain-tactique: #e34948;
+  --fut-level-1: #b9a7f7;
+  --fut-level-2: #9a7cf0;
+  --fut-level-3: #7c3aed;
+  --fut-level-4: #6425c7;
+  --fut-level-5: #4a1d96;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --fut-violet: #9a7cf0;
+    --fut-violet-deep: #7a4cdb;
+    --fut-sky: #38bdf8;
+    --fut-sky-deep: #3987e5;
+    --fut-ink: #f5f3ff;
+    --fut-surface-app: #0f0e17;
+    --fut-surface-card: #1a1a19;
+    --fut-surface-raised: #242233;
+    --fut-surface-border: #2f2d3f;
+    --fut-text-primary: #ffffff;
+    --fut-text-secondary: #c3c2b7;
+    --fut-text-muted: #8e8c9e;
+    --fut-domain-intelligence: #3987e5;
+    --fut-domain-physique: #d95926;
+    --fut-domain-vitesse: #199e70;
+    --fut-domain-education: #c98500;
+    --fut-domain-mental: #d55181;
+    --fut-domain-social: #008300;
+    --fut-domain-technique: #9a7cf0;
+    --fut-domain-tactique: #e66767;
+    --fut-level-1: #5d35a6;
+    --fut-level-2: #7a4cdb;
+    --fut-level-3: #9668f8;
+    --fut-level-4: #b69ffc;
+    --fut-level-5: #d4cafe;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --fut-violet: #9a7cf0;
+  --fut-violet-deep: #7a4cdb;
+  --fut-sky: #38bdf8;
+  --fut-sky-deep: #3987e5;
+  --fut-ink: #f5f3ff;
+  --fut-surface-app: #0f0e17;
+  --fut-surface-card: #1a1a19;
+  --fut-surface-raised: #242233;
+  --fut-surface-border: #2f2d3f;
+  --fut-text-primary: #ffffff;
+  --fut-text-secondary: #c3c2b7;
+  --fut-text-muted: #8e8c9e;
+  --fut-domain-intelligence: #3987e5;
+  --fut-domain-physique: #d95926;
+  --fut-domain-vitesse: #199e70;
+  --fut-domain-education: #c98500;
+  --fut-domain-mental: #d55181;
+  --fut-domain-social: #008300;
+  --fut-domain-technique: #9a7cf0;
+  --fut-domain-tactique: #e66767;
+  --fut-level-1: #5d35a6;
+  --fut-level-2: #7a4cdb;
+  --fut-level-3: #9668f8;
+  --fut-level-4: #b69ffc;
+  --fut-level-5: #d4cafe;
+  color-scheme: dark;
+}

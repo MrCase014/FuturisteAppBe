@@ -1,0 +1,96 @@
+{
+  "app": {
+    "name": "FUTURISTE ACADÉMIE FC",
+    "tagline": "Développer le joueur avant de développer le poste",
+    "shortName": "FUTURISTE"
+  },
+  "nav": {
+    "home": "Accueil",
+    "sessions": "Séances",
+    "players": "Joueurs",
+    "progression": "Progression",
+    "profile": "Profil",
+    "goals": "Objectifs",
+    "badges": "Badges",
+    "calendar": "Calendrier",
+    "myChild": "Mon enfant",
+    "announcements": "Annonces",
+    "manage": "Gérer"
+  },
+  "roles": {
+    "SUPER_ADMIN": "Super administrateur",
+    "ACADEMY_DIRECTOR": "Directeur",
+    "COACH": "Coach",
+    "PLAYER": "Joueur",
+    "PARENT": "Parent"
+  },
+  "domains": {
+    "TECHNIQUE": "Technique",
+    "INTELLIGENCE": "Intelligence",
+    "VITESSE": "Vitesse",
+    "PHYSIQUE": "Physique",
+    "TACTIQUE": "Tactique",
+    "MENTAL": "Mental",
+    "SOCIAL": "Social",
+    "EDUCATION": "Éducation"
+  },
+  "levels": {
+    "1": "Découverte",
+    "2": "En progression",
+    "3": "Acquis",
+    "4": "Très bon",
+    "5": "Excellence"
+  },
+  "sessionPhases": {
+    "ACCUEIL": "Accueil",
+    "ACTIVATION": "Activation",
+    "TECHNIQUE": "Technique",
+    "JEU_REDUIT": "Jeu réduit",
+    "JEU_POSITION": "Jeu de position",
+    "SITUATION_REELLE": "Situation réelle",
+    "RETOUR_CALME": "Retour au calme"
+  },
+  "attendance": {
+    "PRESENT": "Présent",
+    "LATE": "En retard",
+    "ABSENT_EXCUSED": "Absence justifiée",
+    "ABSENT_UNEXCUSED": "Absence non justifiée",
+    "INJURED": "Blessé"
+  },
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "search": "Rechercher",
+    "loading": "Chargement…",
+    "minutes": "min",
+    "players": "joueurs"
+  },
+  "goals": {
+    "title": "MY NEXT LEVEL",
+    "active": "Objectifs en cours",
+    "empty": "Aucun objectif pour l'instant. En créer un ?",
+    "maxReached": "3 objectifs actifs maximum. Terminez-en un avant d'en ajouter."
+  },
+  "dashboard": {
+    "players": "Joueurs",
+    "categories": "Catégories",
+    "coaches": "Coachs",
+    "attendance": "Présence",
+    "alerts": "Alertes",
+    "nextSession": "Prochaine séance",
+    "avgProgression": "Progression moyenne"
+  },
+  "fieldMode": {
+    "title": "Mode Terrain",
+    "offlineReady": "Séance prête · Mode hors ligne",
+    "objective": "Objectif",
+    "coachingPoints": "Points d'observation"
+  },
+  "empty": {
+    "sessions": "Aucune séance pour l'instant. Créer la première ?",
+    "players": "Aucun joueur dans cette équipe.",
+    "exercises": "Aucun exercice ne correspond à ces filtres."
+  }
+}

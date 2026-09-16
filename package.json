@@ -1,0 +1,25 @@
+{
+  "name": "futuriste-academie-fc",
+  "private": true,
+  "version": "0.1.0",
+  "description": "FUTURISTE ACADÉMIE FC — plateforme digitale de formation football jeunes",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "dev": "turbo run dev --filter=@futuriste/web",
+    "dev:mobile": "turbo run dev --filter=@futuriste/mobile",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "turbo": "^2.10.13",
+    "typescript": "^5.9.3"
+  }
+}

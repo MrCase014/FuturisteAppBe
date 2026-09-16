@@ -1,0 +1,123 @@
+{
+  "_comment": "FUTURISTE ACADÉMIE FC — source unique des couleurs. Voir docs/08-DESIGN-SYSTEM.md. L'ordre des slots de domaines est une mesure de sécurité visuelle (séparation daltonisme) validée par script : ne jamais le réordonner sans revalider.",
+  "brand": {
+    "violet": { "light": "#7C3AED", "dark": "#9A7CF0" },
+    "violetDeep": { "light": "#5B21B6", "dark": "#7A4CDB" },
+    "sky": { "light": "#38BDF8", "dark": "#38BDF8" },
+    "skyDeep": { "light": "#0284C7", "dark": "#3987E5" },
+    "white": { "light": "#FFFFFF", "dark": "#FFFFFF" },
+    "ink": { "light": "#0B0A14", "dark": "#F5F3FF" }
+  },
+  "surface": {
+    "app": { "light": "#FAFAFC", "dark": "#0F0E17" },
+    "card": { "light": "#FFFFFF", "dark": "#1A1A19" },
+    "raised": { "light": "#F4F2FF", "dark": "#242233" },
+    "border": { "light": "#E8E5F5", "dark": "#2F2D3F" }
+  },
+  "text": {
+    "primary": { "light": "#0B0A14", "dark": "#FFFFFF" },
+    "secondary": { "light": "#52506B", "dark": "#C3C2B7" },
+    "muted": { "light": "#8B89A3", "dark": "#8E8C9E" }
+  },
+  "domains": [
+    {
+      "slot": 1,
+      "code": "INTELLIGENCE",
+      "light": "#2A78D6",
+      "dark": "#3987E5",
+      "lowContrastLight": false
+    },
+    {
+      "slot": 2,
+      "code": "PHYSIQUE",
+      "light": "#EB6834",
+      "dark": "#D95926",
+      "lowContrastLight": false
+    },
+    {
+      "slot": 3,
+      "code": "VITESSE",
+      "light": "#1BAF7A",
+      "dark": "#199E70",
+      "lowContrastLight": true
+    },
+    {
+      "slot": 4,
+      "code": "EDUCATION",
+      "light": "#EDA100",
+      "dark": "#C98500",
+      "lowContrastLight": true
+    },
+    {
+      "slot": 5,
+      "code": "MENTAL",
+      "light": "#E87BA4",
+      "dark": "#D55181",
+      "lowContrastLight": true
+    },
+    {
+      "slot": 6,
+      "code": "SOCIAL",
+      "light": "#008300",
+      "dark": "#008300",
+      "lowContrastLight": false
+    },
+    {
+      "slot": 7,
+      "code": "TECHNIQUE",
+      "light": "#7C3AED",
+      "dark": "#9A7CF0",
+      "lowContrastLight": false
+    },
+    {
+      "slot": 8,
+      "code": "TACTIQUE",
+      "light": "#E34948",
+      "dark": "#E66767",
+      "lowContrastLight": false
+    }
+  ],
+  "levels": [
+    {
+      "level": 1,
+      "labelFr": "Découverte",
+      "labelEn": "Discovering",
+      "light": "#B9A7F7",
+      "dark": "#5D35A6"
+    },
+    {
+      "level": 2,
+      "labelFr": "En progression",
+      "labelEn": "Progressing",
+      "light": "#9A7CF0",
+      "dark": "#7A4CDB"
+    },
+    {
+      "level": 3,
+      "labelFr": "Acquis",
+      "labelEn": "Acquired",
+      "light": "#7C3AED",
+      "dark": "#9668F8"
+    },
+    {
+      "level": 4,
+      "labelFr": "Très bon",
+      "labelEn": "Strong",
+      "light": "#6425C7",
+      "dark": "#B69FFC"
+    },
+    {
+      "level": 5,
+      "labelFr": "Excellence",
+      "labelEn": "Excellence",
+      "light": "#4A1D96",
+      "dark": "#D4CAFE"
+    }
+  ],
+  "status": {
+    "good": "#0CA30C",
+    "warning": "#FAB219",
+    "serious": "#EC835A",
+    "critical": "#D03B3B"
+  }
+}
