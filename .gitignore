@@ -14,7 +14,7 @@ supabase/.temp/
 *.tsbuildinfo
 
 # Expo / Next / Turbo
+# nativewind-env.d.ts est VERSIONNÉ : sans lui, la prop className n'est plus typée.
 .expo/
 expo-env.d.ts
-nativewind-env.d.ts
 next-env.d.ts
