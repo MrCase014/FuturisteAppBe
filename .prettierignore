@@ -3,7 +3,10 @@ node_modules
 .expo
 dist
 pnpm-lock.yaml
+# Fichiers GÉNÉRÉS : Prettier et leur générateur ne produisent pas le même
+# formatage, et la CI vérifie qu'ils sont à jour. Les laisser tels qu'ils sortent.
 packages/ui/tokens/theme.css
+packages/supabase/src/database.types.ts
 
 # La documentation est mise en forme à la main : tableaux alignés et schémas
 # ASCII que Prettier casserait. Elle est relue, pas reformatée.

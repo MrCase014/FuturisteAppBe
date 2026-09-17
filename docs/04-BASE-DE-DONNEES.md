@@ -5,6 +5,10 @@
 
 **42 tables, réparties en 11 domaines fonctionnels.**
 
+> ✅ **Appliqué et vérifié en Phase 2** : 18 migrations, 85 politiques RLS,
+> 6 vues, 15 types énumérés. Les 12 tests de sécurité passent
+> (`pnpm db:test`). Le schéma décrit ci-dessous est celui qui tourne.
+
 ---
 
 ## 1. Le schéma en un coup d'œil

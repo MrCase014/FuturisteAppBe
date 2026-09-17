@@ -15,8 +15,8 @@ propriété de **FUTURISTE ACADÉMIE FC**.
 | | |
 |---|---|
 | **Architecture** | ✅ validée par le fondateur le 16/09/2026 |
-| **Phase actuelle** | ✅ PHASE 1 — Fondations (monorepo, design system, i18n, CI, maquettes) |
-| **Prochaine étape** | PHASE 2 — Base de données + RLS + connexion |
+| **Phase actuelle** | ✅ PHASE 2 — Base de données, RLS et sécurité |
+| **Prochaine étape** | PHASE 2b — Authentification, puis PHASE 3 — Tableaux de bord |
 | **Langue MVP** | Français (anglais préparé dès le départ) |
 
 ---
@@ -36,6 +36,12 @@ pnpm dev:mobile  # lance l'application mobile (Expo)
 pnpm typecheck   # vérifie les types
 pnpm build       # compile le web et prépare le mobile
 pnpm --filter @futuriste/ui tokens   # régénère theme.css après un changement de palette
+
+# Base de données (sans Docker)
+pnpm db:reset          # crée la base, applique les 18 migrations, charge la démo
+pnpm db:test           # 🔒 joue les 12 tests de sécurité
+pnpm db:types          # régénère les types TypeScript depuis le schéma
+pnpm db:seed:generate  # régénère le seed depuis packages/core
 ```
 
 ### Ce que vous pouvez voir dès maintenant
@@ -51,10 +57,37 @@ Ce que vous voyez est ce qui sera codé.
 
 ---
 
-## ✅ État de la Phase 1
+## ✅ État des phases livrées
+
+### Phase 1 — Fondations
 
 | Livrable | État | Vérification |
 |---|:---:|---|
+| Monorepo pnpm + Turborepo | ✅ | `pnpm install` |
+| Application web (Next.js 16) | ✅ | compile, 14 pages prérendues |
+| Application mobile (Expo SDK 57) | ✅ | bundle Android généré |
+| Design system partagé web + mobile | ✅ | un seul preset Tailwind |
+| Mode clair et mode sombre | ✅ | `theme.css` généré depuis les jetons |
+| Structure fr / en | ✅ | 70 clés, les deux langues alignées |
+| Méthodologie dans `packages/core` | ✅ | **34 tests au vert** |
+| Intégration continue GitHub | ✅ | `.github/workflows/ci.yml` |
+| Maquettes des 10 écrans clés | ✅ | `/maquettes` |
+
+### Phase 2 — Base de données et sécurité
+
+| Livrable | État | Vérification |
+|---|:---:|---|
+| 42 tables, 15 types énumérés | ✅ | `pnpm db:reset` |
+| Fonctions d'aide à la sécurité | ✅ | 11 fonctions dans le schéma `futuriste` |
+| **85 politiques RLS** | ✅ | aucune table sans RLS, aucune sans politique |
+| Privilèges explicites | ✅ | `anon` ne lit rien, `authenticated` ne supprime rien |
+| 6 vues de tableau de bord | ✅ | calcul dans la base, pas dans le téléphone |
+| Données de démonstration fictives | ✅ | générées depuis `packages/core` |
+| Types TypeScript | ✅ | 1 900 lignes générées depuis le schéma |
+| **🔒 Les 12 tests de sécurité** | ✅ | **18 contrôles au vert** |
+| Authentification et redirection par rôle | ⏳ | Phase 2b — nécessite un projet Supabase réel |
+
+---|:---:|---|
 | Monorepo pnpm + Turborepo | ✅ | `pnpm install` |
 | Application web (Next.js 16) | ✅ | compile, 14 pages prérendues |
 | Application mobile (Expo SDK 57) | ✅ | bundle Android généré |

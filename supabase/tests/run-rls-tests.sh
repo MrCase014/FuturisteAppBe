@@ -1,0 +1,145 @@
+#!/usr/bin/env bash
+#
+# LES 12 TESTS DE SÉCURITÉ FUTURISTE (docs/05 §5, docs/12 §11).
+#
+# Ils rejouent, avec de vrais comptes, ce qu'un parent ou un coach peut
+# réellement obtenir de la base. Un seul échec doit bloquer la mise en
+# production : ce sont des données de mineurs.
+#
+# Chaque scénario s'exécute dans une transaction, sous le rôle `authenticated`
+# et avec le jeton d'un utilisateur précis — exactement comme le fait Supabase.
+#
+# Usage :  supabase/tests/run-rls-tests.sh [nom_de_base]
+set -uo pipefail
+
+DB="${1:-futuriste}"
+# -q : psql n'imprime pas les étiquettes BEGIN/SET/ROLLBACK, seulement les résultats.
+PSQL=(psql -d "$DB" -tAq -v ON_ERROR_STOP=1)
+
+pass=0; fail=0
+
+uid() { "${PSQL[@]}" -c "select id from profiles where email = '$1';"; }
+
+# Exécute une requête sous l'identité donnée et renvoie son résultat.
+as_user() { # $1 = uuid (vide = non authentifié) ; $2 = requête
+  local sub="$1" query="$2"
+  # set_config renvoie une ligne : on l'envoie au néant pour que seule la
+  # requête testée produise un résultat.
+  "${PSQL[@]}" <<SQL 2>&1 | grep -v '^$' | tail -1
+begin;
+set local role authenticated;
+\\o /dev/null
+select set_config('request.jwt.claim.sub', '$sub', true);
+\\o
+$query
+rollback;
+SQL
+}
+
+check() { # $1 = n° ; $2 = libellé ; $3 = attendu ; $4 = obtenu
+  if [ "$3" = "$4" ]; then
+    printf '  ✅ %2s. %s\n' "$1" "$2"; pass=$((pass+1))
+  else
+    printf '  ❌ %2s. %s\n      attendu : %s\n      obtenu  : %s\n' "$1" "$2" "$3" "$4"
+    fail=$((fail+1))
+  fi
+}
+
+DIRECTOR=$(uid 'directeur@test.futuriste.fc')
+COACH1=$(uid 'coach1@test.futuriste.fc')
+COACH2=$(uid 'coach2@test.futuriste.fc')
+PARENT_A=$(uid 'parenta@test.futuriste.fc')
+PARENT_C=$(uid 'parentc@test.futuriste.fc')
+PLAYER=$(uid 'joueur@test.futuriste.fc')
+OUTSIDER=$(uid 'outsider@test.autre-academie.fc')
+
+echo "LES 12 TESTS DE SÉCURITÉ — base « $DB »"
+echo
+
+# 1 · Un parent ne voit QUE son enfant.
+check 1 "Parent A ne voit pas l'enfant d'une autre famille" "1" \
+  "$(as_user "$PARENT_A" 'select count(*) from players;')"
+
+# 2 · Et seulement les évaluations qu'on lui a rendues visibles.
+check 2 "Parent A ne voit que les évaluations autorisées" "2" \
+  "$(as_user "$PARENT_A" 'select count(*) from player_evaluations;')"
+
+# 3 · Un coach ne voit que les équipes qui lui sont attribuées.
+check 3 "Coach 1 ne voit pas les joueurs du coach 2" "10" \
+  "$(as_user "$COACH1" 'select count(*) from players;')"
+check 3 "Coach 2 ne voit pas les joueurs du coach 1" "10" \
+  "$(as_user "$COACH2" 'select count(*) from players;')"
+
+# 4 · Les notes médicales ne sont pas dans la vue du coach.
+#     RLS filtre des lignes, pas des colonnes : c'est la vue qui protège.
+check 4 "La vue coach n'expose aucune donnée médicale" "0" \
+  "$("${PSQL[@]}" -c "select count(*) from information_schema.columns
+       where table_name='v_players_coach_safe'
+         and column_name in ('medical_notes','height_cm','weight_kg');")"
+
+# 5 · Le parent ne coache pas : aucune écriture.
+check 5 "Parent ne peut pas modifier une évaluation" "0" \
+  "$(as_user "$PARENT_A" "with u as (update player_evaluations set engagement = 1 returning 1)
+                          select count(*) from u;")"
+
+# 6 · Ni créer un objectif.
+check 6 "Parent ne peut pas créer un objectif" "REFUSE" \
+  "$(as_user "$PARENT_A" "insert into player_goals (academy_id, player_id, title)
+       select academy_id, id, 'tentative' from players limit 1;
+     select 'ACCEPTE';" | grep -q 'ACCEPTE' && echo ACCEPTE || echo REFUSE)"
+
+# 7 · Un joueur ne voit que lui-même.
+check 7 "Joueur ne voit pas le profil d'un coéquipier" "1" \
+  "$(as_user "$PLAYER" 'select count(*) from players;')"
+
+# 8 · ADR-09 : au-delà de 48 h, l'auteur lui-même ne réécrit plus l'histoire.
+check 8 "Coach ne peut pas modifier une évaluation de plus de 48 h" "0" \
+  "$(as_user "$COACH1" "with u as (
+       update player_evaluations set engagement = 1
+       where qualitative_comment = 'Séance du mois dernier.' returning 1)
+     select count(*) from u;")"
+check 8 "Coach peut encore corriger une évaluation récente" "1" \
+  "$(as_user "$COACH1" "with u as (
+       update player_evaluations set engagement = 2
+       where qualitative_comment like 'Regarde rarement%' returning 1)
+     select count(*) from u;")"
+
+# 9 · Le PLAYER DNA est un outil d'éducateur, jamais un verdict montré au parent.
+check 9 "Parent ne voit pas le PLAYER DNA de son enfant" "0" \
+  "$(as_user "$PARENT_A" 'select count(*) from player_dna_profiles;')"
+check 9 "Coach ne voit pas un PLAYER DNA sous le seuil de confiance" "1" \
+  "$(as_user "$COACH2" 'select count(*) from player_dna_profiles;')"
+
+# 10 · Sans authentification, la base ne répond rien.
+check 10 "Requête non authentifiée : aucune ligne" "0" \
+  "$(as_user "" 'select count(*) from players;')"
+
+# 11 · Aucune fuite d'une académie vers une autre.
+check 11 "Utilisateur d'une autre académie : aucune ligne" "0" \
+  "$(as_user "$OUTSIDER" 'select count(*) from players;')"
+
+# 12 · Pas de consentement parental, pas d'accès. La règle est en SQL.
+check 12 "Parent sans consentement : aucune ligne" "0" \
+  "$(as_user "$PARENT_C" 'select count(*) from players;')"
+
+# Contrôle de complétude : aucune table ne doit échapper à RLS.
+check "R" "Aucune table sans RLS" "0" \
+  "$("${PSQL[@]}" -c "select count(*) from pg_tables
+       where schemaname='public' and not rowsecurity;")"
+check "R" "Aucune table sans politique" "0" \
+  "$("${PSQL[@]}" -c "select count(*) from pg_tables t
+       where t.schemaname='public' and t.rowsecurity
+         and not exists (select 1 from pg_policies p
+                         where p.schemaname='public' and p.tablename=t.tablename);")"
+check "R" "Aucune politique de suppression physique" "0" \
+  "$("${PSQL[@]}" -c "select count(*) from pg_policies
+       where schemaname='public' and cmd='DELETE';")"
+
+echo
+if [ "$fail" -eq 0 ]; then
+  echo "✅ $pass contrôles au vert — la sécurité tient."
+  exit 0
+else
+  echo "❌ $fail contrôle(s) en échec sur $((pass+fail)). MISE EN PRODUCTION BLOQUÉE."
+  exit 1
+fi
