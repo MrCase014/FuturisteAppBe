@@ -73,6 +73,10 @@ jobs:
       PGPORT: '5432'
       PGUSER: postgres
       PGPASSWORD: postgres
+      # Sans PGDATABASE, psql se connecte à la base portant le nom de
+      # l'utilisateur (« postgres ») : les migrations partiraient dans une base
+      # et les tests interrogeraient l'autre.
+      PGDATABASE: futuriste
       FUTURISTE_DB: futuriste
     steps:
       - uses: actions/checkout@v5
@@ -90,17 +94,26 @@ jobs:
 
       - name: Appliquer le schéma et les données de démonstration
         run: |
-          psql -v ON_ERROR_STOP=1 -q -f supabase/local/00_auth_shim.sql
+          # -d explicite en plus de PGDATABASE : la cible ne doit dépendre
+          # d'aucun défaut implicite.
+          psql -d "$FUTURISTE_DB" -v ON_ERROR_STOP=1 -q -f supabase/local/00_auth_shim.sql
           for f in supabase/migrations/*.sql; do
             echo "→ $(basename "$f")"
-            psql -v ON_ERROR_STOP=1 -q -f "$f"
+            psql -d "$FUTURISTE_DB" -v ON_ERROR_STOP=1 -q -f "$f"
           done
           for f in supabase/seed/*.sql; do
-            psql -v ON_ERROR_STOP=1 -q -f "$f"
+            psql -d "$FUTURISTE_DB" -v ON_ERROR_STOP=1 -q -f "$f"
           done
+          echo "Tables créées : $(psql -d "$FUTURISTE_DB" -tAqc "select count(*) from pg_tables where schemaname = 'public'")"
+
+      - name: Garde-fou — le schéma a bien été appliqué dans la bonne base
+        run: |
+          n=$(psql -d "$FUTURISTE_DB" -tAqc "select count(*) from pg_tables where schemaname = 'public'")
+          [ "$n" -eq 42 ] || (echo "::error::$n tables au lieu de 42 dans « $FUTURISTE_DB »." && exit 1)
 
       - name: 🔒 Les 12 tests de sécurité
-        run: bash supabase/tests/run-rls-tests.sh
+        run: bash supabase/tests/run-rls-tests.sh "$FUTURISTE_DB"
+
 
       - name: Vérifier que les types TypeScript sont à jour
         run: |
