@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Alert, Card, SectionTitle } from '@/components/kit';
-import { supabaseAnonKey, supabaseUrl } from '@/lib/supabase/config';
+import { supabaseAnonKey, supabaseUrl, supabaseUrlSource } from '@/lib/supabase/config';
 
 export const metadata = { title: 'Diagnostic · FUTURISTE ACADÉMIE FC' };
 export const dynamic = 'force-dynamic';
@@ -19,6 +19,7 @@ export const dynamic = 'force-dynamic';
 export default function DiagnosticPage() {
   const url = supabaseUrl();
   const key = supabaseAnonKey();
+  const urlSource = supabaseUrlSource();
 
   const env = process.env.VERCEL_ENV ?? 'local';
   const branch = process.env.VERCEL_GIT_COMMIT_REF ?? '—';
@@ -38,12 +39,15 @@ export default function DiagnosticPage() {
 
   const rows: { label: string; ok: boolean; detail: string }[] = [
     {
-      label: 'NEXT_PUBLIC_SUPABASE_URL',
+      label: 'URL du projet Supabase',
       ok: url.length > 0,
-      detail: url.length > 0 ? url : 'absente',
+      detail:
+        urlSource === 'variable'
+          ? `${url} · depuis la variable d'environnement`
+          : `${url} · depuis le repli codé en dur (la variable est absente)`,
     },
     {
-      label: 'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+      label: 'Clé anonyme',
       ok: key.length > 0,
       detail: key.length > 0 ? `présente · ${key.length} caractères` : 'absente',
     },
