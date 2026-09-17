@@ -15,8 +15,8 @@ propriété de **FUTURISTE ACADÉMIE FC**.
 | | |
 |---|---|
 | **Architecture** | ✅ validée par le fondateur le 16/09/2026 |
-| **Phase actuelle** | ✅ PHASE 2 — Base de données, RLS et sécurité |
-| **Prochaine étape** | PHASE 2b — Authentification, puis PHASE 3 — Tableaux de bord |
+| **Phase actuelle** | ✅ PHASE 2b — Authentification et redirection par rôle |
+| **Prochaine étape** | PHASE 3 — Tableaux de bord |
 | **Langue MVP** | Français (anglais préparé dès le départ) |
 
 ---
@@ -85,7 +85,18 @@ Ce que vous voyez est ce qui sera codé.
 | Données de démonstration fictives | ✅ | générées depuis `packages/core` |
 | Types TypeScript | ✅ | 1 900 lignes générées depuis le schéma |
 | **🔒 Les 12 tests de sécurité** | ✅ | **18 contrôles au vert** |
-| Authentification et redirection par rôle | ⏳ | Phase 2b — nécessite un projet Supabase réel |
+
+### Phase 2b — Authentification
+
+| Livrable | État | Vérification |
+|---|:---:|---|
+| Connexion e-mail + mot de passe | ✅ | `/connexion` |
+| Connexion par lien magique | ✅ | aucune inscription libre (`shouldCreateUser: false`) |
+| Mot de passe oublié | ✅ | `/mot-de-passe-oublie` |
+| Session rafraîchie à chaque requête | ✅ | `apps/web/proxy.ts` |
+| Pages privées protégées | ✅ | redirection vers `/connexion` |
+| Écran d'accueil après connexion | ✅ | `/tableau-de-bord` |
+| Déploiement du schéma sur Supabase | ✅ | `.github/workflows/deploy-db.yml` |
 
 ---|:---:|---|
 | Monorepo pnpm + Turborepo | ✅ | `pnpm install` |

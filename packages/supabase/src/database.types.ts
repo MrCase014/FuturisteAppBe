@@ -51,6 +51,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       academy_settings: {
         Row: {
@@ -71,6 +72,22 @@ export interface Database {
           updated_by?: string | null;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'academy_settings_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: true;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'academy_settings_updated_by_fkey';
+            columns: ['updated_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       age_groups: {
         Row: {
@@ -142,6 +159,15 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'age_groups_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: false;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       ai_requests: {
         Row: {
@@ -192,6 +218,22 @@ export interface Database {
           created_at?: string;
           completed_at?: string | null;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'ai_requests_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: false;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'ai_requests_actor_id_fkey';
+            columns: ['actor_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       announcements: {
         Row: {
@@ -230,6 +272,29 @@ export interface Database {
           published_at?: string | null;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'announcements_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: false;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'announcements_author_id_fkey';
+            columns: ['author_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'announcements_team_id_fkey';
+            columns: ['team_id'];
+            isOneToOne: false;
+            referencedRelation: 'teams';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       attendance: {
         Row: {
@@ -265,6 +330,29 @@ export interface Database {
           recorded_at?: string;
           client_generated_id?: string | null;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'attendance_event_id_fkey';
+            columns: ['event_id'];
+            isOneToOne: false;
+            referencedRelation: 'events';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'attendance_player_id_fkey';
+            columns: ['player_id'];
+            isOneToOne: false;
+            referencedRelation: 'players';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'attendance_recorded_by_fkey';
+            columns: ['recorded_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       audit_logs: {
         Row: {
@@ -300,6 +388,22 @@ export interface Database {
           ip_address?: string | null;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'audit_logs_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: false;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'audit_logs_actor_id_fkey';
+            columns: ['actor_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       badges: {
         Row: {
@@ -341,6 +445,22 @@ export interface Database {
           tier?: number;
           is_automatic?: boolean;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'badges_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: false;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'badges_domain_id_fkey';
+            columns: ['domain_id'];
+            isOneToOne: false;
+            referencedRelation: 'development_domains';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       challenges: {
         Row: {
@@ -379,6 +499,22 @@ export interface Database {
           points?: number;
           is_active?: boolean;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'challenges_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: false;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'challenges_domain_id_fkey';
+            columns: ['domain_id'];
+            isOneToOne: false;
+            referencedRelation: 'development_domains';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       competencies: {
         Row: {
@@ -426,6 +562,22 @@ export interface Database {
           is_active?: boolean;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'competencies_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: false;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'competencies_domain_id_fkey';
+            columns: ['domain_id'];
+            isOneToOne: false;
+            referencedRelation: 'development_domains';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       competency_levels: {
         Row: {
@@ -452,6 +604,15 @@ export interface Database {
           label_en?: string | null;
           descriptor?: string | null;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'competency_levels_competency_id_fkey';
+            columns: ['competency_id'];
+            isOneToOne: false;
+            referencedRelation: 'competencies';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       development_domains: {
         Row: {
@@ -490,6 +651,15 @@ export interface Database {
           order_index?: number;
           is_active?: boolean;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'development_domains_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: false;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       events: {
         Row: {
@@ -537,6 +707,36 @@ export interface Database {
           created_by?: string | null;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'events_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: false;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'events_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'events_session_id_fkey';
+            columns: ['session_id'];
+            isOneToOne: false;
+            referencedRelation: 'training_sessions';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'events_team_id_fkey';
+            columns: ['team_id'];
+            isOneToOne: false;
+            referencedRelation: 'teams';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       exercise_diagrams: {
         Row: {
@@ -575,6 +775,29 @@ export interface Database {
           created_by?: string | null;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'exercise_diagrams_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: false;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'exercise_diagrams_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'exercise_diagrams_exercise_id_fkey';
+            columns: ['exercise_id'];
+            isOneToOne: false;
+            referencedRelation: 'exercises';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       exercise_media: {
         Row: {
@@ -643,6 +866,29 @@ export interface Database {
           uploaded_by?: string | null;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'exercise_media_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: false;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'exercise_media_exercise_id_fkey';
+            columns: ['exercise_id'];
+            isOneToOne: false;
+            referencedRelation: 'exercises';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'exercise_media_uploaded_by_fkey';
+            columns: ['uploaded_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       exercises: {
         Row: {
@@ -753,6 +999,29 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'exercises_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: false;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'exercises_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'exercises_domain_id_fkey';
+            columns: ['domain_id'];
+            isOneToOne: false;
+            referencedRelation: 'development_domains';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       family_resources: {
         Row: {
@@ -797,6 +1066,15 @@ export interface Database {
           order_index?: number;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'family_resources_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: false;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       match_events: {
         Row: {
@@ -841,6 +1119,36 @@ export interface Database {
           client_generated_id?: string | null;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'match_events_match_id_fkey';
+            columns: ['match_id'];
+            isOneToOne: false;
+            referencedRelation: 'matches';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'match_events_player_id_fkey';
+            columns: ['player_id'];
+            isOneToOne: false;
+            referencedRelation: 'players';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'match_events_recorded_by_fkey';
+            columns: ['recorded_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'match_events_related_player_id_fkey';
+            columns: ['related_player_id'];
+            isOneToOne: false;
+            referencedRelation: 'players';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       match_players: {
         Row: {
@@ -870,6 +1178,22 @@ export interface Database {
           minutes_played?: number;
           comment?: string | null;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'match_players_match_id_fkey';
+            columns: ['match_id'];
+            isOneToOne: false;
+            referencedRelation: 'matches';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'match_players_player_id_fkey';
+            columns: ['player_id'];
+            isOneToOne: false;
+            referencedRelation: 'players';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       matches: {
         Row: {
@@ -926,6 +1250,29 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'matches_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: false;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'matches_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'matches_team_id_fkey';
+            columns: ['team_id'];
+            isOneToOne: false;
+            referencedRelation: 'teams';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       methodology: {
         Row: {
@@ -970,6 +1317,36 @@ export interface Database {
           updated_by?: string | null;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'methodology_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: false;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'methodology_age_group_id_fkey';
+            columns: ['age_group_id'];
+            isOneToOne: false;
+            referencedRelation: 'age_groups';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'methodology_domain_id_fkey';
+            columns: ['domain_id'];
+            isOneToOne: false;
+            referencedRelation: 'development_domains';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'methodology_updated_by_fkey';
+            columns: ['updated_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       notifications: {
         Row: {
@@ -1002,6 +1379,15 @@ export interface Database {
           read_at?: string | null;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'notifications_profile_id_fkey';
+            columns: ['profile_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       player_badges: {
         Row: {
@@ -1028,6 +1414,29 @@ export interface Database {
           reason?: string | null;
           awarded_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'player_badges_awarded_by_fkey';
+            columns: ['awarded_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'player_badges_badge_id_fkey';
+            columns: ['badge_id'];
+            isOneToOne: false;
+            referencedRelation: 'badges';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'player_badges_player_id_fkey';
+            columns: ['player_id'];
+            isOneToOne: false;
+            referencedRelation: 'players';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       player_challenges: {
         Row: {
@@ -1060,6 +1469,29 @@ export interface Database {
           validated_at?: string | null;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'player_challenges_challenge_id_fkey';
+            columns: ['challenge_id'];
+            isOneToOne: false;
+            referencedRelation: 'challenges';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'player_challenges_player_id_fkey';
+            columns: ['player_id'];
+            isOneToOne: false;
+            referencedRelation: 'players';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'player_challenges_validated_by_fkey';
+            columns: ['validated_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       player_development_snapshots: {
         Row: {
@@ -1089,6 +1521,22 @@ export interface Database {
           sample_size?: number | null;
           computed_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'player_development_snapshots_domain_id_fkey';
+            columns: ['domain_id'];
+            isOneToOne: false;
+            referencedRelation: 'development_domains';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'player_development_snapshots_player_id_fkey';
+            columns: ['player_id'];
+            isOneToOne: false;
+            referencedRelation: 'players';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       player_dna_profiles: {
         Row: {
@@ -1121,6 +1569,15 @@ export interface Database {
           is_manual_override?: boolean;
           computed_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'player_dna_profiles_player_id_fkey';
+            columns: ['player_id'];
+            isOneToOne: true;
+            referencedRelation: 'players';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       player_evaluation_scores: {
         Row: {
@@ -1144,6 +1601,22 @@ export interface Database {
           level?: number;
           comment?: string | null;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'player_evaluation_scores_competency_id_fkey';
+            columns: ['competency_id'];
+            isOneToOne: false;
+            referencedRelation: 'competencies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'player_evaluation_scores_evaluation_id_fkey';
+            columns: ['evaluation_id'];
+            isOneToOne: false;
+            referencedRelation: 'player_evaluations';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       player_evaluations: {
         Row: {
@@ -1203,6 +1676,36 @@ export interface Database {
           client_generated_id?: string | null;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'player_evaluations_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: false;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'player_evaluations_evaluator_id_fkey';
+            columns: ['evaluator_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'player_evaluations_player_id_fkey';
+            columns: ['player_id'];
+            isOneToOne: false;
+            referencedRelation: 'players';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'player_evaluations_session_id_fkey';
+            columns: ['session_id'];
+            isOneToOne: false;
+            referencedRelation: 'training_sessions';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       player_goal_checkins: {
         Row: {
@@ -1232,6 +1735,29 @@ export interface Database {
           created_by?: string | null;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'player_goal_checkins_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'player_goal_checkins_goal_id_fkey';
+            columns: ['goal_id'];
+            isOneToOne: false;
+            referencedRelation: 'player_goals';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'player_goal_checkins_session_id_fkey';
+            columns: ['session_id'];
+            isOneToOne: false;
+            referencedRelation: 'training_sessions';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       player_goals: {
         Row: {
@@ -1288,6 +1814,43 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'player_goals_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: false;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'player_goals_competency_id_fkey';
+            columns: ['competency_id'];
+            isOneToOne: false;
+            referencedRelation: 'competencies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'player_goals_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'player_goals_player_id_fkey';
+            columns: ['player_id'];
+            isOneToOne: false;
+            referencedRelation: 'players';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'player_goals_source_evaluation_id_fkey';
+            columns: ['source_evaluation_id'];
+            isOneToOne: false;
+            referencedRelation: 'player_evaluations';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       player_guardians: {
         Row: {
@@ -1323,6 +1886,22 @@ export interface Database {
           consent_medical_at?: string | null;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'player_guardians_guardian_id_fkey';
+            columns: ['guardian_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'player_guardians_player_id_fkey';
+            columns: ['player_id'];
+            isOneToOne: false;
+            referencedRelation: 'players';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       player_statistics: {
         Row: {
@@ -1379,6 +1958,15 @@ export interface Database {
           sessions_total?: number;
           computed_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'player_statistics_player_id_fkey';
+            columns: ['player_id'];
+            isOneToOne: false;
+            referencedRelation: 'players';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       player_team_memberships: {
         Row: {
@@ -1408,6 +1996,22 @@ export interface Database {
           end_date?: string | null;
           is_active?: boolean;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'player_team_memberships_player_id_fkey';
+            columns: ['player_id'];
+            isOneToOne: false;
+            referencedRelation: 'players';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'player_team_memberships_team_id_fkey';
+            columns: ['team_id'];
+            isOneToOne: false;
+            referencedRelation: 'teams';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       players: {
         Row: {
@@ -1482,6 +2086,22 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'players_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: false;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'players_profile_id_fkey';
+            columns: ['profile_id'];
+            isOneToOne: true;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       profiles: {
         Row: {
@@ -1529,6 +2149,15 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'profiles_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: false;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       session_exercises: {
         Row: {
@@ -1570,6 +2199,22 @@ export interface Database {
           adapted_players_count?: number | null;
           completed_at?: string | null;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'session_exercises_exercise_id_fkey';
+            columns: ['exercise_id'];
+            isOneToOne: false;
+            referencedRelation: 'exercises';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'session_exercises_session_id_fkey';
+            columns: ['session_id'];
+            isOneToOne: false;
+            referencedRelation: 'training_sessions';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       session_templates: {
         Row: {
@@ -1602,6 +2247,29 @@ export interface Database {
           created_by?: string | null;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'session_templates_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: false;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'session_templates_age_group_id_fkey';
+            columns: ['age_group_id'];
+            isOneToOne: false;
+            referencedRelation: 'age_groups';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'session_templates_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       sync_conflicts: {
         Row: {
@@ -1637,6 +2305,22 @@ export interface Database {
           resolved_at?: string | null;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'sync_conflicts_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: false;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'sync_conflicts_actor_id_fkey';
+            columns: ['actor_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       team_coaches: {
         Row: {
@@ -1657,6 +2341,22 @@ export interface Database {
           role?: string;
           assigned_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'team_coaches_coach_id_fkey';
+            columns: ['coach_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'team_coaches_team_id_fkey';
+            columns: ['team_id'];
+            isOneToOne: false;
+            referencedRelation: 'teams';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       teams: {
         Row: {
@@ -1689,6 +2389,22 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'teams_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: false;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'teams_age_group_id_fkey';
+            columns: ['age_group_id'];
+            isOneToOne: false;
+            referencedRelation: 'age_groups';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       training_sessions: {
         Row: {
@@ -1772,6 +2488,50 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'training_sessions_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: false;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'training_sessions_age_group_id_fkey';
+            columns: ['age_group_id'];
+            isOneToOne: false;
+            referencedRelation: 'age_groups';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'training_sessions_coach_id_fkey';
+            columns: ['coach_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'training_sessions_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'training_sessions_main_domain_id_fkey';
+            columns: ['main_domain_id'];
+            isOneToOne: false;
+            referencedRelation: 'development_domains';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'training_sessions_team_id_fkey';
+            columns: ['team_id'];
+            isOneToOne: false;
+            referencedRelation: 'teams';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       video_analysis_jobs: {
         Row: {
@@ -1813,6 +2573,29 @@ export interface Database {
           created_at?: string;
           completed_at?: string | null;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'video_analysis_jobs_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: false;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'video_analysis_jobs_match_id_fkey';
+            columns: ['match_id'];
+            isOneToOne: false;
+            referencedRelation: 'matches';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'video_analysis_jobs_requested_by_fkey';
+            columns: ['requested_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
       };
     };
     Views: {
@@ -1826,6 +2609,7 @@ export interface Database {
           sessions_30d: number | null;
           active_goals: number | null;
         };
+        Relationships: [];
       };
       v_player_attendance: {
         Row: {
@@ -1835,6 +2619,7 @@ export interface Database {
           attendance_rate: number | null;
           late_count: number | null;
         };
+        Relationships: [];
       };
       v_player_domain_levels: {
         Row: {
@@ -1844,6 +2629,7 @@ export interface Database {
           sample_size: number | null;
           last_evaluated_at: string | null;
         };
+        Relationships: [];
       };
       v_players_coach_safe: {
         Row: {
@@ -1865,6 +2651,7 @@ export interface Database {
           observations: string | null;
           age: number | null;
         };
+        Relationships: [];
       };
       v_team_active_goals: {
         Row: {
@@ -1872,6 +2659,7 @@ export interface Database {
           competency_id: string | null;
           players_with_goal: number | null;
         };
+        Relationships: [];
       };
       v_team_weakest_competencies: {
         Row: {
@@ -1880,9 +2668,11 @@ export interface Database {
           avg_level: number | null;
           players_count: number | null;
         };
+        Relationships: [];
       };
     };
     Functions: Record<string, never>;
+    CompositeTypes: Record<string, never>;
     Enums: {
       attendance_status: 'PRESENT' | 'LATE' | 'ABSENT_EXCUSED' | 'ABSENT_UNEXCUSED' | 'INJURED';
       dominant_foot: 'LEFT' | 'RIGHT' | 'BOTH';

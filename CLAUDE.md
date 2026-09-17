@@ -6,8 +6,9 @@ Propriétaire : FUTURISTE ACADÉMIE FC. Interlocuteur : Voundi Valere Elysée,
 ingénieur IA, **non développeur web**. Langue de travail : **français**.
 
 **PHASES 1 et 2 terminées.** Les 12 tests de sécurité passent
-(`pnpm db:test` — 18 contrôles). Phase en cours : PHASE 2b (authentification
-et redirection par rôle), puis PHASE 3 (tableaux de bord).
+(`pnpm db:test` — 18 contrôles). **PHASE 2b terminée** (authentification, lien magique, protection des pages,
+déploiement du schéma par GitHub Actions). Phase en cours : PHASE 3 —
+tableaux de bord.
 
 ⚠️ Toute migration nouvelle impose, avant de livrer : `pnpm db:reset`,
 `pnpm db:types`, puis `pnpm db:test` au vert. Un contrôle rouge bloque tout.
