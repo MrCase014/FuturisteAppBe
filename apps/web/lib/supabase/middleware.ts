@@ -3,7 +3,14 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { supabaseAnonKey, supabaseUrl } from './config';
 
 /** Pages accessibles sans être connecté. */
-const PUBLIC_PATHS = ['/', '/connexion', '/mot-de-passe-oublie', '/maquettes', '/auth'];
+const PUBLIC_PATHS = [
+  '/',
+  '/connexion',
+  '/mot-de-passe-oublie',
+  '/maquettes',
+  '/auth',
+  '/diagnostic',
+];
 
 const isPublic = (pathname: string) =>
   PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
