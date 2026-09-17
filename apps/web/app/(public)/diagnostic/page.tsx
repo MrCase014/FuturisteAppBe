@@ -23,6 +23,19 @@ export default function DiagnosticPage() {
   const env = process.env.VERCEL_ENV ?? 'local';
   const branch = process.env.VERCEL_GIT_COMMIT_REF ?? '—';
 
+  // Noms que l'application sait lire, plus ceux que l'intégration Vercel ↔ Supabase
+  // pose parfois d'elle-même. Savoir LESQUELS existent évite de corriger à l'aveugle.
+  const KNOWN = [
+    'NEXT_PUBLIC_SUPABASE_URL',
+    'SUPABASE_URL',
+    'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+    'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+    'SUPABASE_ANON_KEY',
+  ] as const;
+
+  const present = KNOWN.filter((name) => (process.env[name] ?? '').length > 0);
+  const missing = KNOWN.filter((name) => (process.env[name] ?? '').length === 0);
+
   const rows: { label: string; ok: boolean; detail: string }[] = [
     {
       label: 'NEXT_PUBLIC_SUPABASE_URL',
@@ -78,7 +91,30 @@ export default function DiagnosticPage() {
       </Card>
 
       <Card className="mt-4">
-        <SectionTitle>Variables</SectionTitle>
+        <SectionTitle>Noms de variables trouvés</SectionTitle>
+        <p className="mb-2 text-caption text-content-secondary">
+          Aucune valeur n&apos;est affichée. Si un nom apparaît ici comme présent alors que vous
+          n&apos;arrivez pas à l&apos;ajouter dans l&apos;hébergement, c&apos;est qu&apos;il y
+          existe déjà — il faut le modifier, pas le créer.
+        </p>
+        <ul className="space-y-1 text-caption">
+          {KNOWN.map((name) => (
+            <li key={name} className="flex items-baseline gap-2">
+              <span aria-hidden>{present.includes(name) ? '✅' : '·'}</span>
+              <code className="break-all">{name}</code>
+              <span className="text-content-muted">
+                {present.includes(name) ? 'présente' : 'absente'}
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-3 text-caption text-content-muted">
+          {present.length} présente(s), {missing.length} absente(s) sur {KNOWN.length} noms connus.
+        </p>
+      </Card>
+
+      <Card className="mt-4">
+        <SectionTitle>Ce que l&apos;application retient</SectionTitle>
         <ul className="space-y-3">
           {rows.map((row) => (
             <li key={row.label}>
