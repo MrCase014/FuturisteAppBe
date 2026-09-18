@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { safeRedirectPath } from '@futuriste/core';
 
 /**
  * Retour du lien magique et de la réinitialisation de mot de passe.
@@ -8,7 +9,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
-  const suite = searchParams.get('suite') ?? '/tableau-de-bord';
+  const suite = safeRedirectPath(searchParams.get('suite'));
 
   if (!code) {
     return NextResponse.redirect(`${origin}/connexion?erreur=lien_invalide`);

@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
+import { safeRedirectPath } from '@futuriste/core';
 
 export interface FormState {
   error?: string;
@@ -24,7 +25,7 @@ export async function signInWithPassword(_prev: FormState, formData: FormData): 
 
   const email = String(formData.get('email') ?? '').trim();
   const password = String(formData.get('password') ?? '');
-  const suite = String(formData.get('suite') ?? '/tableau-de-bord');
+  const suite = safeRedirectPath(String(formData.get('suite') ?? ''));
 
   if (!email || !password) {
     return { error: 'Renseignez votre adresse e-mail et votre mot de passe.' };
@@ -34,7 +35,7 @@ export async function signInWithPassword(_prev: FormState, formData: FormData): 
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return { error: GENERIC_ERROR };
 
-  redirect(suite.startsWith('/') ? suite : '/tableau-de-bord');
+  redirect(suite);
 }
 
 export async function sendMagicLink(_prev: FormState, formData: FormData): Promise<FormState> {

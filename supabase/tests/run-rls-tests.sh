@@ -122,6 +122,26 @@ check 11 "Utilisateur d'une autre académie : aucune ligne" "0" \
 check 12 "Parent sans consentement : aucune ligne" "0" \
   "$(as_user "$PARENT_C" 'select count(*) from players;')"
 
+# 13 · Cloisonnement en écriture. Une politique UPDATE dont le USING ne
+#      mentionne pas l'académie laissait déplacer une ligne vers une AUTRE
+#      académie — c'était le cas de player_evaluations avant le durcissement
+#      du 18/09. Le modèle économique étant la revente à d'autres académies
+#      (ADR-08), ce serait une fuite de données de mineurs entre deux clients.
+OTHER_ACADEMY=$("${PSQL[@]}" -c "select id from academies where slug = 'autre-academie';")
+check 13 "Directeur ne peut pas déplacer une évaluation vers une autre académie" "REFUSE" \
+  "$(as_user "$DIRECTOR" "update player_evaluations set academy_id = '$OTHER_ACADEMY';
+     select 'ACCEPTE';" | grep -q 'ACCEPTE' && echo ACCEPTE || echo REFUSE)"
+check 13 "Directeur ne peut pas déplacer un joueur vers une autre académie" "REFUSE" \
+  "$(as_user "$DIRECTOR" "update players set academy_id = '$OTHER_ACADEMY';
+     select 'ACCEPTE';" | grep -q 'ACCEPTE' && echo ACCEPTE || echo REFUSE)"
+
+# Invariant structurel : plus fort qu'un test sur des données, car il tient
+# même sur une table vide — et c'est précisément sur des tables vides qu'un
+# test de données donne une fausse assurance.
+check "R" "Aucune politique UPDATE sans WITH CHECK explicite" "0" \
+  "$("${PSQL[@]}" -c "select count(*) from pg_policies
+       where schemaname='public' and cmd in ('UPDATE','ALL') and with_check is null;")"
+
 # Contrôle de complétude : aucune table ne doit échapper à RLS.
 check "R" "Aucune table sans RLS" "0" \
   "$("${PSQL[@]}" -c "select count(*) from pg_tables

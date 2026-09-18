@@ -1,15 +1,20 @@
 name: Déployer le schéma sur Supabase
 
-# Applique les migrations au projet Supabase réel.
+# Applique les migrations à la base de PRODUCTION.
 #
-# ⚠️ AUCUNE clé n'est écrite dans ce fichier ni dans le dépôt. Elles vivent
-# dans les secrets GitHub, que seul le propriétaire du dépôt peut lire, et ne
-# transitent jamais par une conversation (docs/12 §9).
+# ⚠️ AUCUNE clé n'est écrite ici ni dans le dépôt. Elles vivent dans les secrets
+# GitHub, que seul le propriétaire peut écrire et que personne ne peut relire,
+# et ne transitent jamais par une conversation (docs/12 §9).
 #
 # Secrets à créer dans Settings → Secrets and variables → Actions :
 #   SUPABASE_ACCESS_TOKEN  — jeton personnel Supabase (Account → Access Tokens)
-#   SUPABASE_PROJECT_REF   — la référence du projet, ex. eaibpxznqfqzcxsjvykg
-#   SUPABASE_DB_PASSWORD   — mot de passe de la base, choisi à la création
+#   SUPABASE_PROJECT_REF   — référence du projet, ex. eaibpxznqfqzcxsjvykg
+#   SUPABASE_DB_PASSWORD   — mot de passe de la base
+#
+# DÉCLENCHEMENT MANUEL UNIQUEMENT. Un déclenchement automatique sur `main`
+# ferait migrer une base de production à chaque fusion — sans protection de
+# branche, quiconque pousse sur main modifierait la base des familles. Une
+# migration de production est une décision, pas un effet de bord.
 
 on:
   workflow_dispatch:
@@ -18,26 +23,30 @@ on:
         description: 'Taper APPLIQUER pour confirmer'
         required: true
         default: ''
-  push:
-    branches: [main]
-    paths: ['supabase/migrations/**']
 
 concurrency:
   group: deploy-db
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   deploy:
     name: Migrations → Supabase
     runs-on: ubuntu-latest
+    # Rattache le job à un environnement GitHub : c'est là que se règle une
+    # approbation manuelle obligatoire (Settings → Environments → production
+    # → Required reviewers). Fortement recommandé avant la vraie production.
+    environment: production
     steps:
-      - uses: actions/checkout@v5
-
-      - name: Garde-fou sur le déclenchement manuel
-        if: github.event_name == 'workflow_dispatch' && inputs.confirmer != 'APPLIQUER'
+      - name: Garde-fou sur la confirmation
+        if: inputs.confirmer != 'APPLIQUER'
         run: |
           echo "::error::Confirmation manquante. Relancez en tapant APPLIQUER."
           exit 1
+
+      - uses: actions/checkout@50fbc622fc4ef5163becd7fab6573eac35f8462e # v5
 
       - name: Vérifier que les secrets sont présents
         env:
@@ -54,7 +63,8 @@ jobs:
             exit 1
           fi
 
-      - uses: supabase/setup-cli@v1
+      # Action tierce : épinglée à un commit, jamais à une étiquette mobile.
+      - uses: supabase/setup-cli@ab058987d8d6c725971f6cf9d0b5c98467e30bd1 # v1.7.1
         with:
           version: latest
 
@@ -75,12 +85,3 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: supabase db push
-
-      - name: Contrôle — le schéma est bien en place
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-        run: |
-          echo "Tables publiques du projet :"
-          supabase db dump --schema public --data-only=false 2>/dev/null \
-            | grep -c "^CREATE TABLE" || true

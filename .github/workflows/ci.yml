@@ -1,29 +1,30 @@
 name: CI
 
 on:
-  # Les branches de travail sont couvertes par l'événement pull_request :
-  # déclencher aussi sur push ferait tourner deux fois le même travail.
   push:
     branches: [main]
   pull_request:
 
-# Un nouveau push annule le contrôle en cours sur la même branche.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+# Moindre privilège. Sans cette clause, le jeton du workflow hérite des droits
+# par défaut du dépôt, souvent en écriture : une dépendance compromise pourrait
+# alors pousser du code. Aucun de ces jobs n'écrit quoi que ce soit.
+permissions:
+  contents: read
 
 jobs:
   verify:
     name: Lint · Typecheck · Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-
-      # Pas de champ "version" : action-setup lit packageManager du package.json.
-      # Préciser les deux provoque une erreur de versions contradictoires.
-      - uses: pnpm/action-setup@v5
-
-      - uses: actions/setup-node@v5
+      # Actions épinglées à un commit précis, pas à une étiquette : une
+      # étiquette peut être redirigée vers un autre code sans prévenir.
+      - uses: actions/checkout@50fbc622fc4ef5163becd7fab6573eac35f8462e # v5
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+      - uses: actions/setup-node@f1f314fca9dfce2769ece7d933488f076716723e # v5
         with:
           node-version: 20
           cache: pnpm
@@ -56,7 +57,7 @@ jobs:
         run: pnpm build
 
   database:
-    name: Schéma · RLS · 12 tests de sécurité
+    name: Schéma · RLS · tests de sécurité
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -79,9 +80,9 @@ jobs:
       PGDATABASE: futuriste
       FUTURISTE_DB: futuriste
     steps:
-      - uses: actions/checkout@v5
-      - uses: pnpm/action-setup@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@50fbc622fc4ef5163becd7fab6573eac35f8462e # v5
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+      - uses: actions/setup-node@f1f314fca9dfce2769ece7d933488f076716723e # v5
         with:
           node-version: 20
           cache: pnpm
@@ -104,16 +105,14 @@ jobs:
           for f in supabase/seed/*.sql; do
             psql -d "$FUTURISTE_DB" -v ON_ERROR_STOP=1 -q -f "$f"
           done
-          echo "Tables créées : $(psql -d "$FUTURISTE_DB" -tAqc "select count(*) from pg_tables where schemaname = 'public'")"
 
       - name: Garde-fou — le schéma a bien été appliqué dans la bonne base
         run: |
           n=$(psql -d "$FUTURISTE_DB" -tAqc "select count(*) from pg_tables where schemaname = 'public'")
           [ "$n" -eq 42 ] || (echo "::error::$n tables au lieu de 42 dans « $FUTURISTE_DB »." && exit 1)
 
-      - name: 🔒 Les 12 tests de sécurité
+      - name: 🔒 Tests de sécurité
         run: bash supabase/tests/run-rls-tests.sh "$FUTURISTE_DB"
-
 
       - name: Vérifier que les types TypeScript sont à jour
         run: |
