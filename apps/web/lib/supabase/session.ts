@@ -21,6 +21,10 @@ export interface SessionProfile {
  */
 export async function getSessionProfile(): Promise<SessionProfile | null> {
   const supabase = await createSupabaseServerClient();
+  // Sans configuration, personne n'est considéré comme connecté : c'est le
+  // repli sûr. requireSessionProfile renverra vers /connexion, qui explique.
+  if (!supabase) return null;
+
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return null;
 

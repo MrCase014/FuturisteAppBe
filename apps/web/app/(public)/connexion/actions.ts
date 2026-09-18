@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { isSupabaseConfigured } from '@/lib/supabase/config';
+import { SUPABASE_UNAVAILABLE_MESSAGE } from '@/lib/supabase/config';
 import { safeRedirectPath } from '@futuriste/core';
 
 export interface FormState {
@@ -19,10 +19,6 @@ export interface FormState {
 const GENERIC_ERROR = 'Adresse e-mail ou mot de passe incorrect.';
 
 export async function signInWithPassword(_prev: FormState, formData: FormData): Promise<FormState> {
-  if (!isSupabaseConfigured()) {
-    return { error: "La connexion n'est pas encore configurée sur ce serveur." };
-  }
-
   const email = String(formData.get('email') ?? '').trim();
   const password = String(formData.get('password') ?? '');
   const suite = safeRedirectPath(String(formData.get('suite') ?? ''));
@@ -32,6 +28,8 @@ export async function signInWithPassword(_prev: FormState, formData: FormData): 
   }
 
   const supabase = await createSupabaseServerClient();
+  if (!supabase) return { error: SUPABASE_UNAVAILABLE_MESSAGE };
+
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return { error: GENERIC_ERROR };
 
@@ -39,15 +37,13 @@ export async function signInWithPassword(_prev: FormState, formData: FormData): 
 }
 
 export async function sendMagicLink(_prev: FormState, formData: FormData): Promise<FormState> {
-  if (!isSupabaseConfigured()) {
-    return { error: "La connexion n'est pas encore configurée sur ce serveur." };
-  }
-
   const email = String(formData.get('email') ?? '').trim();
   if (!email) return { error: 'Renseignez votre adresse e-mail.' };
 
   const origin = (await headers()).get('origin') ?? '';
   const supabase = await createSupabaseServerClient();
+  if (!supabase) return { error: SUPABASE_UNAVAILABLE_MESSAGE };
+
   await supabase.auth.signInWithOtp({
     email,
     options: {
@@ -67,6 +63,7 @@ export async function sendMagicLink(_prev: FormState, formData: FormData): Promi
 
 export async function signOut() {
   const supabase = await createSupabaseServerClient();
-  await supabase.auth.signOut();
+  // Sans client, il n'y a de toute façon aucune session à fermer.
+  await supabase?.auth.signOut();
   redirect('/connexion');
 }

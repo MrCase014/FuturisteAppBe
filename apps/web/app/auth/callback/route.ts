@@ -16,6 +16,10 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = await createSupabaseServerClient();
+  if (!supabase) {
+    return NextResponse.redirect(`${origin}/connexion?erreur=indisponible`);
+  }
+
   const { error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {

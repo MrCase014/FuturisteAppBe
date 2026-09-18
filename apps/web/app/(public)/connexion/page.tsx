@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { isSupabaseConfigured } from '@/lib/supabase/config';
+import { SUPABASE_UNAVAILABLE_MESSAGE, isSupabaseConfigured } from '@/lib/supabase/config';
 import { Alert, Card } from '@/components/kit';
 import { LoginForm } from './login-form';
 
@@ -16,6 +16,7 @@ export default async function ConnexionPage({
   const messages: Record<string, string> = {
     lien_invalide: 'Ce lien de connexion est incomplet. Demandez-en un nouveau.',
     lien_expire: 'Ce lien a expiré. Demandez-en un nouveau.',
+    indisponible: SUPABASE_UNAVAILABLE_MESSAGE,
   };
 
   return (

@@ -1,3 +1,5 @@
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { requireSessionProfile, ROLE_LABEL } from '@/lib/supabase/session';
 import { signOut } from '@/app/(public)/connexion/actions';
@@ -20,6 +22,10 @@ export const dynamic = 'force-dynamic';
 export default async function TableauDeBordPage() {
   const profile = await requireSessionProfile();
   const supabase = await createSupabaseServerClient();
+  // Inatteignable en pratique : sans client, requireSessionProfile a déjà
+  // renvoyé vers /connexion. On le dit au compilateur plutôt que d'écrire un
+  // `!` qui masquerait le jour où cette page changerait.
+  if (!supabase) redirect('/connexion');
 
   const [academy, players, teams, goals] = await Promise.all([
     supabase.from('academies').select('name').eq('id', profile.academyId).maybeSingle(),
@@ -70,6 +76,13 @@ export default async function TableauDeBordPage() {
       </Alert>
 
       <Card className="mt-6">
+        <SectionTitle>Mon compte</SectionTitle>
+        <Link href="/compte/mot-de-passe" className="text-body text-futuriste-violet underline">
+          Changer mon mot de passe
+        </Link>
+      </Card>
+
+      <Card className="mt-4">
         <SectionTitle>Prochaine étape</SectionTitle>
         <p className="text-body text-content-secondary">
           Phase 3 : les vrais tableaux de bord, avec les chiffres de l&apos;académie, les alertes et

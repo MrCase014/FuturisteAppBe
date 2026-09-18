@@ -62,3 +62,13 @@ export function supabaseAnonKey(): string {
 export function isSupabaseConfigured(): boolean {
   return supabaseUrl().length > 0 && supabaseAnonKey().length > 0;
 }
+
+/**
+ * Message unique affiché quand la configuration manque.
+ *
+ * Il dit ce qui se passe sans nommer la variable en cause : un message
+ * d'erreur public n'a pas à décrire la plomberie du serveur.
+ */
+export const SUPABASE_UNAVAILABLE_MESSAGE =
+  "Le service n'est pas disponible pour le moment. Réessayez dans quelques minutes, " +
+  "et prévenez l'académie si cela persiste.";

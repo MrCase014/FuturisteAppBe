@@ -66,7 +66,12 @@ sur une page de hameçonnage. Le code valide déjà les redirections internes
 **Authentication → Policies / Attack protection :**
 - ☑️ **Leaked password protection** — refuse les mots de passe déjà présents
   dans des fuites connues
-- Longueur minimale : **10 caractères**
+- Longueur minimale : **10 caractères** (identique à la règle du code)
+- ☑️ **Secure password change** — exige une authentification récente pour
+  modifier un mot de passe. Le code impose déjà le mot de passe actuel sur la
+  page de changement, et une session de moins de 15 minutes sur la page de
+  réinitialisation ; ce réglage ferme le même angle mort côté fournisseur, y
+  compris pour un appel qui contournerait l'interface.
 
 ### 6. Supabase — sauvegardes
 
@@ -100,7 +105,19 @@ publics.
 *Settings → Code security* → activer **Secret scanning** et **Push protection**.
 Cela bloque un commit qui contiendrait une clé, avant qu'elle ne parte.
 
-### 10. Nom de domaine
+### 10. Code — installer ESLint
+
+Le dépôt n'a **aucun** analyseur de code. Le script `lint` de l'application web
+appelait `next lint`, une commande retirée de Next.js 16 : il échouait donc
+silencieusement, et la CI ne le lançait pas. Le script dit maintenant la vérité
+au lieu de faire semblant.
+
+Ce qu'il faut faire : installer `eslint` avec la configuration Next.js, corriger
+ce qu'elle remonte, puis ajouter `lint` aux étapes de la CI. Ce n'est pas un
+bloquant pour la sécurité des données — celle-ci est dans PostgreSQL (docs/05) —
+mais c'est le filet qui attrape les erreurs ordinaires avant les familles.
+
+### 11. Nom de domaine
 
 Un domaine propre (`futuriste-academie.com`) plutôt qu'une adresse `vercel.app` :
 crédibilité auprès des familles, et maîtrise de l'adresse en cas de changement

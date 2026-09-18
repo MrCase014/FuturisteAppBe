@@ -6,7 +6,7 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "echo \"@futuriste/web: ESLint pas encore installé (voir docs/17)\"",
     "typecheck": "tsc --noEmit",
     "test": "echo \"@futuriste/web: tests de parcours en Phase 2\""
   },
