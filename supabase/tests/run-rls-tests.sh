@@ -135,6 +135,23 @@ check 13 "Directeur ne peut pas déplacer un joueur vers une autre académie" "R
   "$(as_user "$DIRECTOR" "update players set academy_id = '$OTHER_ACADEMY';
      select 'ACCEPTE';" | grep -q 'ACCEPTE' && echo ACCEPTE || echo REFUSE)"
 
+# 14 · Journal d'audit infalsifiable. La politique d'insertion était
+#      `with check (true)` : un parent pouvait écrire une entrée pour une
+#      AUTRE académie, au nom du directeur. Un journal falsifiable sert de
+#      preuve en cas de litige sur des données d'enfants — et cette preuve
+#      pouvait être fabriquée par la personne qu'elle accuse.
+DIRECTOR_ACADEMY=$("${PSQL[@]}" -c "select academy_id from profiles where id = '$DIRECTOR';")
+check 14 "Un parent ne peut pas forger une entrée d'audit dans une autre académie" "REFUSE" \
+  "$(as_user "$PARENT_A" "insert into audit_logs (academy_id, actor_id, action, entity_type)
+     values ('$OTHER_ACADEMY', '$DIRECTOR', 'PLAYER_DELETED', 'players');
+     select 'ACCEPTE';" | grep -q 'ACCEPTE' && echo ACCEPTE || echo REFUSE)"
+check 14 "Un parent ne peut pas signer une entrée d'audit au nom du directeur" "REFUSE" \
+  "$(as_user "$PARENT_A" "insert into audit_logs (academy_id, actor_id, action, entity_type)
+     values ('$DIRECTOR_ACADEMY', '$DIRECTOR', 'PLAYER_DELETED', 'players');
+     select 'ACCEPTE';" | grep -q 'ACCEPTE' && echo ACCEPTE || echo REFUSE)"
+check 14 "Un coach ne lit pas le journal d'audit" "0" \
+  "$(as_user "$COACH1" 'select count(*) from audit_logs;')"
+
 # Invariant structurel : plus fort qu'un test sur des données, car il tient
 # même sur une table vide — et c'est précisément sur des tables vides qu'un
 # test de données donne une fausse assurance.

@@ -110,6 +110,32 @@ bundler d'Expo SDK 57, qui attend 0.86.3 et 4.5.1. Le fichier
 seule version de React vive dans le monorepo. Tailwind reste en 3.4 pour que le
 web et le mobile partagent le même preset.
 
+
+### ADR-16 🟢 · La navigation par rôle est définie une seule fois, dans `packages/core`
+**Ce que nous faisons :** `navigationForRole()` renvoie les entrées de menu d'un
+rôle. Le web en fait une barre latérale et une barre basse, le mobile en fait
+des onglets — aucun des deux ne décide du contenu.
+**Alternative écartée :** un menu écrit dans chaque application.
+**Raison :** deux listes finissent toujours par diverger. Une entrée ajoutée
+côté web et oubliée côté mobile ne produit aucune erreur : elle manque, sans
+bruit, jusqu'à ce qu'un coach la cherche sur le terrain.
+**Conséquence :** la règle des 5 entrées maximum (docs/06) est vérifiée par un
+test, pour les 5 rôles à la fois. Une entrée dont la phase n'est pas encore
+livrée s'affiche désactivée, avec son numéro de phase : masquer ferait croire à
+un produit plus pauvre, laisser cliquer mènerait à une page inexistante.
+
+### ADR-17 🟢 · Une moyenne peu étayée est annoncée comme indicative, jamais masquée ni affirmée
+**Ce que nous faisons :** en dessous de 5 évaluations, une moyenne de domaine
+porte la mention « sur N évaluations seulement — indicatif ».
+**Raison :** une moyenne calculée sur deux évaluations n'est pas une mesure,
+c'est une anecdote. Affichée comme le niveau d'une catégorie, elle conduirait un
+directeur à réorienter une méthodologie ou à interpeller un coach sur du bruit —
+et dans une académie de jeunes, ces décisions touchent des enfants réels.
+C'est le principe déjà retenu pour le PLAYER DNA (docs/11).
+**Conséquence :** les moyennes sont pondérées par le nombre d'observations
+(`weightedAverage`, testée), sans quoi un joueur évalué une fois pèserait autant
+qu'un joueur évalué douze fois.
+
 ---
 
 ## Les 3 décisions tranchées par le fondateur
