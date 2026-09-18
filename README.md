@@ -91,6 +91,7 @@ par un **non-développeur**.
 | 14 | [Schémas tactiques 2D](docs/14-SCHEMAS-TACTIQUES.md) | Le format des animations d'exercices |
 | 15 | [Stack opérationnelle IA](docs/15-STACK-OPERATIONNELLE.md) | Claude + n8n + Notion + tl;dv + Canva |
 | 16 | [Décisions d'architecture (ADR)](docs/16-DECISIONS.md) | Les 12 choix structurants et leurs alternatives |
+| 17 | [Mise en production](docs/17-MISE-EN-PRODUCTION.md) | 🔴 Les réglages que le code ne peut pas faire |
 
 ---
 
