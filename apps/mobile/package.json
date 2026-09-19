@@ -1,0 +1,38 @@
+{
+  "name": "@futuriste/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "dev": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "build": "echo \"@futuriste/mobile: build via EAS (Phase 11)\"",
+    "lint": "echo \"@futuriste/mobile: ok\"",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"@futuriste/mobile: tests en Phase 7\""
+  },
+  "dependencies": {
+    "@futuriste/core": "workspace:*",
+    "@futuriste/i18n": "workspace:*",
+    "@futuriste/ui": "workspace:*",
+    "expo": "~57.0.23",
+    "expo-constants": "~57.0.18",
+    "expo-linking": "~57.0.10",
+    "expo-router": "~57.0.21",
+    "expo-status-bar": "~57.0.1",
+    "nativewind": "^4.2.7",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-reanimated": "4.5.1",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "react-native-worklets": "0.10.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^5.9.3",
+    "babel-preset-expo": "~57.0.12"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "FUTURISTE ACADÉMIE FC",
+    "slug": "futuriste-academie-fc",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "futuriste",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": { "resizeMode": "contain", "backgroundColor": "#7C3AED" },
+    "ios": { "supportsTablet": true, "bundleIdentifier": "fc.futuriste.academie" },
+    "android": {
+      "package": "fc.futuriste.academie",
+      "adaptiveIcon": { "backgroundColor": "#7C3AED" }
+    },
+    "plugins": ["expo-router"],
+    "experiments": { "typedRoutes": true }
+  }
+}

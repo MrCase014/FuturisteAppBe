@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  # Les branches de travail sont couvertes par l'événement pull_request :
+  # déclencher aussi sur push ferait tourner deux fois le même travail.
+  push:
+    branches: [main]
+  pull_request:
+
+# Un nouveau push annule le contrôle en cours sur la même branche.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Lint · Typecheck · Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # Pas de champ "version" : action-setup lit packageManager du package.json.
+      # Préciser les deux provoque une erreur de versions contradictoires.
+      - uses: pnpm/action-setup@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Installer les dépendances
+        run: pnpm install --frozen-lockfile
+
+      - name: Vérifier que theme.css est à jour avec les jetons
+        run: |
+          pnpm --filter @futuriste/ui tokens
+          git diff --exit-code packages/ui/tokens/theme.css \
+            || (echo "::error::theme.css n'est pas à jour. Lancez : pnpm --filter @futuriste/ui tokens" && exit 1)
+
+      - name: Format
+        run: pnpm format:check
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Tests
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build

@@ -1,0 +1,96 @@
+{
+  "app": {
+    "name": "FUTURISTE ACADÉMIE FC",
+    "tagline": "Develop the player before the position",
+    "shortName": "FUTURISTE"
+  },
+  "nav": {
+    "home": "Home",
+    "sessions": "Sessions",
+    "players": "Players",
+    "progression": "Progress",
+    "profile": "Profile",
+    "goals": "Goals",
+    "badges": "Badges",
+    "calendar": "Calendar",
+    "myChild": "My child",
+    "announcements": "News",
+    "manage": "Manage"
+  },
+  "roles": {
+    "SUPER_ADMIN": "Super admin",
+    "ACADEMY_DIRECTOR": "Director",
+    "COACH": "Coach",
+    "PLAYER": "Player",
+    "PARENT": "Parent"
+  },
+  "domains": {
+    "TECHNIQUE": "Technical",
+    "INTELLIGENCE": "Intelligence",
+    "VITESSE": "Speed",
+    "PHYSIQUE": "Physical",
+    "TACTIQUE": "Tactical",
+    "MENTAL": "Mental",
+    "SOCIAL": "Social",
+    "EDUCATION": "Education"
+  },
+  "levels": {
+    "1": "Discovering",
+    "2": "Progressing",
+    "3": "Acquired",
+    "4": "Strong",
+    "5": "Excellence"
+  },
+  "sessionPhases": {
+    "ACCUEIL": "Welcome",
+    "ACTIVATION": "Activation",
+    "TECHNIQUE": "Technical",
+    "JEU_REDUIT": "Small-sided game",
+    "JEU_POSITION": "Positional game",
+    "SITUATION_REELLE": "Match situation",
+    "RETOUR_CALME": "Cool down"
+  },
+  "attendance": {
+    "PRESENT": "Present",
+    "LATE": "Late",
+    "ABSENT_EXCUSED": "Excused absence",
+    "ABSENT_UNEXCUSED": "Unexcused absence",
+    "INJURED": "Injured"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "loading": "Loading…",
+    "minutes": "min",
+    "players": "players"
+  },
+  "goals": {
+    "title": "MY NEXT LEVEL",
+    "active": "Active goals",
+    "empty": "No goal yet. Create one?",
+    "maxReached": "3 active goals maximum. Complete one before adding another."
+  },
+  "dashboard": {
+    "players": "Players",
+    "categories": "Age groups",
+    "coaches": "Coaches",
+    "attendance": "Attendance",
+    "alerts": "Alerts",
+    "nextSession": "Next session",
+    "avgProgression": "Average progress"
+  },
+  "fieldMode": {
+    "title": "Field Mode",
+    "offlineReady": "Session ready · Offline",
+    "objective": "Objective",
+    "coachingPoints": "Coaching points"
+  },
+  "empty": {
+    "sessions": "No session yet. Create the first one?",
+    "players": "No player in this team.",
+    "exercises": "No exercise matches these filters."
+  }
+}

@@ -1,0 +1,12 @@
+node_modules
+.next
+.expo
+dist
+pnpm-lock.yaml
+packages/ui/tokens/theme.css
+
+# La documentation est mise en forme à la main : tableaux alignés et schémas
+# ASCII que Prettier casserait. Elle est relue, pas reformatée.
+*.md
+docs/
+.claude/

@@ -1,0 +1,25 @@
+@import '@futuriste/ui/tokens/theme.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background-color: theme('colors.surface.app');
+    color: theme('colors.content.primary');
+    font-family: theme('fontFamily.sans');
+  }
+  /* Accessibilité : respect de prefers-reduced-motion (docs/08 §11). */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
