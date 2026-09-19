@@ -277,6 +277,28 @@ sql += `insert into player_guardians (id, player_id, guardian_id, relationship, 
   (${q(uuid('pg:A'))}, ${q(players[0].id)}, ${q(uuid('u:parentA'))}, 'Père', true, now(), now()),
   (${q(uuid('pg:B'))}, ${q(players[10].id)}, ${q(uuid('u:parentB'))}, 'Mère', true, now(), now()),
   (${q(uuid('pg:C'))}, ${q(players[1].id)}, ${q(uuid('u:parentC'))}, 'Père', true, null, null);\n`;
+
+sql += `
+-- Données médicales de démonstration. Entièrement fictives : aucune donnée
+-- réelle d'enfant ne doit jamais entrer ici (docs/12, règle 2 de CLAUDE.md).
+-- Elles vivent dans player_medical, hors de portée des coachs et des familles.
+insert into player_medical (player_id, academy_id, medical_notes, height_cm, weight_kg) values
+  (${q(players[0].id)}, ${q(ACADEMY)}, 'Asthme léger — inhalateur dans le sac, à rappeler avant l''effort.', 131, 29),
+  (${q(players[1].id)}, ${q(ACADEMY)}, 'Allergie aux arachides. Trousse d''urgence confiée au coach référent.', 134, 31),
+  (${q(players[2].id)}, ${q(ACADEMY)}, 'Entorse cheville droite en mai. Reprise complète validée.', 129, 28);
+
+-- Une catégorie et une équipe dans l'AUTRE académie.
+-- Elles ne servent qu'aux tests de cloisonnement : sans cible appartenant à un
+-- concurrent, un test d'écriture inter-académies ne peut pas échouer — il
+-- passerait faute d'occasion, pas grâce à la sécurité.
+insert into age_groups (id, academy_id, code, label_fr, min_age, max_age, order_index)
+values (${q(uuid('ag:autre:U11'))}, ${q(OTHER_ACADEMY)}, 'U11', 'U11 (autre académie)', 10, 11, 1);
+
+insert into teams (id, academy_id, age_group_id, name, season, gender)
+values (${q(uuid('team:autre'))}, ${q(OTHER_ACADEMY)}, ${q(uuid('ag:autre:U11'))},
+        'Équipe d''une autre académie', ${q(SEASON)}, 'MIXED');
+`;
+
 writeFileSync(join(here, '03_people.sql'), sql);
 
 // ── 04 · Développement : évaluations, objectifs, PLAYER DNA ────────────────

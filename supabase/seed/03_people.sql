@@ -98,34 +98,18 @@ insert into player_guardians (id, player_id, guardian_id, relationship, is_prima
 -- Données médicales de démonstration. Entièrement fictives : aucune donnée
 -- réelle d'enfant ne doit jamais entrer ici (docs/12, règle 2 de CLAUDE.md).
 -- Elles vivent dans player_medical, hors de portée des coachs et des familles.
-insert into player_medical (player_id, academy_id, medical_notes, height_cm, weight_kg)
-select p.id, p.academy_id,
-       case row_number() over (order by p.created_at, p.id)
-         when 1 then 'Asthme léger — inhalateur dans le sac, à rappeler avant l''effort.'
-         when 2 then 'Allergie aux arachides. Trousse d''urgence confiée au coach référent.'
-         when 3 then 'Entorse cheville droite en mai. Reprise complète validée.'
-       end,
-       130 + (row_number() over (order by p.created_at, p.id))::int,
-       28 + (row_number() over (order by p.created_at, p.id))::int
-from players p
-where p.deleted_at is null
-  and p.academy_id = (select id from academies where slug <> 'autre-academie' limit 1)
-order by p.created_at, p.id
-limit 3
-on conflict (player_id) do nothing;
+insert into player_medical (player_id, academy_id, medical_notes, height_cm, weight_kg) values
+  ('a63da1de-c32d-4006-b99b-bfb943cbd2ff', '206d70cf-eedc-4bea-94d5-1d11b6fe6247', 'Asthme léger — inhalateur dans le sac, à rappeler avant l''effort.', 131, 29),
+  ('9657ad71-fe8e-4082-a7f3-7788d195ad7e', '206d70cf-eedc-4bea-94d5-1d11b6fe6247', 'Allergie aux arachides. Trousse d''urgence confiée au coach référent.', 134, 31),
+  ('98d34003-0a86-4065-9a62-57024b67b202', '206d70cf-eedc-4bea-94d5-1d11b6fe6247', 'Entorse cheville droite en mai. Reprise complète validée.', 129, 28);
 
 -- Une catégorie et une équipe dans l'AUTRE académie.
 -- Elles ne servent qu'aux tests de cloisonnement : sans cible appartenant à un
 -- concurrent, un test d'écriture inter-académies ne peut pas échouer — il
 -- passerait faute d'occasion, pas grâce à la sécurité.
 insert into age_groups (id, academy_id, code, label_fr, min_age, max_age, order_index)
-values ('9a1d0f6e-0000-4000-8000-000000000001',
-        '3c7171ab-5133-4d6c-acd8-1d57244eda02', 'U11', 'U11 (autre académie)', 10, 11, 1)
-on conflict (id) do nothing;
+values ('a0306e37-bd06-4098-bebc-72a559f85a11', '3c7171ab-5133-4d6c-acd8-1d57244eda02', 'U11', 'U11 (autre académie)', 10, 11, 1);
 
 insert into teams (id, academy_id, age_group_id, name, season, gender)
-values ('9a1d0f6e-0000-4000-8000-000000000002',
-        '3c7171ab-5133-4d6c-acd8-1d57244eda02',
-        '9a1d0f6e-0000-4000-8000-000000000001',
-        'Équipe d''une autre académie', '2026', 'MIXED')
-on conflict (id) do nothing;
+values ('8aa84c87-2523-45a0-9891-265dc25e84f5', '3c7171ab-5133-4d6c-acd8-1d57244eda02', 'a0306e37-bd06-4098-bebc-72a559f85a11',
+        'Équipe d''une autre académie', '2026-2027', 'MIXED');
