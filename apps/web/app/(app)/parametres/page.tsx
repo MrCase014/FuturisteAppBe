@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { Alert, Card, EmptyState, SectionTitle } from '@/components/kit';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -52,6 +53,35 @@ export default async function ParametresPage() {
           Identité de l&apos;académie et journal des modifications.
         </p>
       </div>
+
+      <Card>
+        <SectionTitle>Gérer l&apos;académie</SectionTitle>
+        <ul className="divide-y divide-surface-border">
+          {[
+            { href: '/equipes', label: 'Équipes', hint: 'Effectifs, staff, affectations' },
+            { href: '/categories', label: 'Catégories', hint: 'De U7 à U18, et leur méthodologie' },
+            ...(isStaff
+              ? [{ href: '/coachs', label: 'Coachs', hint: 'Qui encadre quelle équipe' }]
+              : []),
+            { href: '/joueurs', label: 'Joueurs', hint: 'Rechercher, filtrer, consulter' },
+          ].map((link) => (
+            <li key={link.href}>
+              <Link
+                href={link.href}
+                className="flex items-center gap-3 py-3 hover:bg-surface-raised"
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="block text-body text-content-primary">{link.label}</span>
+                  <span className="block text-caption text-content-secondary">{link.hint}</span>
+                </span>
+                <span aria-hidden className="text-content-muted">
+                  →
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </Card>
 
       <Card>
         <SectionTitle>Académie</SectionTitle>

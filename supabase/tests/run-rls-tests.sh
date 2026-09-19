@@ -195,6 +195,44 @@ check 16 "Directeur rattache bien un joueur à une équipe de SON académie" "AC
      values ('$MY_PLAYER', '$MY_TEAM', '2099'); select 'ACCEPTE';" \
      | grep -q 'ACCEPTE' && echo ACCEPTE || echo REFUSE)"
 
+# 17 · LE TEST DE RECETTE DE LA PHASE 4 (docs/10) :
+#      « je crée une équipe U11, j'y mets 16 joueurs, j'affecte un coach.
+#        Le coach se connecte : il voit ses 16 joueurs, et AUCUN autre. »
+#
+#      Tout se joue dans une seule transaction, annulée à la fin : le scénario
+#      change d'identité en cours de route, ce que `as_user` ne permet pas.
+COACH3=$(uid 'coach3@test.futuriste.fc')
+recette=$("${PSQL[@]}" <<SQL 2>&1 | tail -1
+begin;
+\\o /dev/null
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '$DIRECTOR', true);
+
+insert into teams (academy_id, age_group_id, name, season, gender)
+select futuriste.my_academy(), g.id, 'U11 Recette', '2026', 'MIXED'
+from age_groups g
+where g.academy_id = futuriste.my_academy() and g.code = 'U11'
+limit 1;
+
+insert into player_team_memberships (player_id, team_id, season)
+select p.id, (select id from teams where name = 'U11 Recette'), '2026'
+from players p
+where p.academy_id = futuriste.my_academy() and p.deleted_at is null
+order by p.created_at, p.id
+limit 16;
+
+insert into team_coaches (team_id, coach_id)
+values ((select id from teams where name = 'U11 Recette'), '$COACH3');
+
+-- Le coach prend la main.
+select set_config('request.jwt.claim.sub', '$COACH3', true);
+\\o
+select count(*) from players;
+rollback;
+SQL
+)
+check 17 "Le coach affecté voit ses 16 joueurs, et aucun autre" "16" "$recette"
+
 # Invariant structurel : corriger la classe, pas seulement les cas. Une
 # politique qui cite is_staff() sans nommer l'académie laisse un directeur agir
 # chez un concurrent — c'est arrivé trois fois.

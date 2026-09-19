@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { GENDER_LABEL } from '@futuriste/core';
-import { Card, EmptyState } from '@/components/kit';
+import { Card, EmptyState, SectionTitle } from '@/components/kit';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { requireSessionProfile } from '@/lib/supabase/session';
-import { listTeams } from '@/lib/data/people';
+import { listAgeGroups, listTeams } from '@/lib/data/people';
+import { CreateTeamForm } from './create-form';
 
 export const metadata = { title: 'Équipes · FUTURISTE ACADÉMIE FC' };
 export const dynamic = 'force-dynamic';
@@ -20,8 +21,11 @@ export default async function EquipesPage() {
   const supabase = await createSupabaseServerClient();
   if (!supabase) redirect('/connexion');
 
-  const teams = await listTeams(supabase);
   const isStaff = profile.role === 'SUPER_ADMIN' || profile.role === 'ACADEMY_DIRECTOR';
+  const [teams, ageGroups] = await Promise.all([
+    listTeams(supabase),
+    isStaff ? listAgeGroups(supabase) : Promise.resolve([]),
+  ]);
 
   return (
     <div className="space-y-5">
@@ -69,9 +73,17 @@ export default async function EquipesPage() {
         </Card>
       )}
 
+      {isStaff && (
+        <Card>
+          <SectionTitle>Créer une équipe</SectionTitle>
+          <CreateTeamForm
+            ageGroups={ageGroups.map((g) => ({ id: g.id, label: `${g.code} · ${g.labelFr}` }))}
+          />
+        </Card>
+      )}
+
       <p className="text-caption text-content-secondary">
-        La création d&apos;équipe et l&apos;affectation des joueurs se font depuis la fiche de
-        chaque équipe.
+        L&apos;affectation des joueurs et des coachs se fait depuis la fiche de chaque équipe.
       </p>
     </div>
   );

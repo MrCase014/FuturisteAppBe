@@ -20,7 +20,7 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 | 2 | 42 tables, RLS, tests de sécurité | ✅ fusionnée (PR #2) |
 | 2b | Authentification, mots de passe | ✅ fusionnée (PR #3) |
 | 3 | Tableaux de bord, navigation, paramètres | ✅ fusionnée (PR #4) |
-| 4 | Joueurs, équipes, catégories | ⏳ en cours |
+| 4 | Joueurs, équipes, catégories, coachs | ⏳ en cours |
 
 `main` contient tout. Les branches de phase fusionnées ne servent plus.
 
@@ -28,12 +28,12 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 
 ```
 43 tables · 6 vues · 15 enums
-30 contrôles de sécurité RLS     (pnpm db:test)
-78 tests unitaires               (pnpm test)
+36 contrôles de sécurité RLS     (pnpm db:test)
+91 tests unitaires               (pnpm test)
 20 tâches turbo                  (lint typecheck test build)
 ```
 
-Jeu de démonstration : 2 académies, 20 joueurs, 3 coachs, 2 équipes,
+Jeu de démonstration : 2 académies, 20 joueurs, 3 coachs, 3 équipes (dont 1 chez un concurrent, pour les tests de cloisonnement),
 7 catégories, 4 évaluations, 3 objectifs. **0 séance, 0 présence** — normal,
 la prise de présence arrive en phase 7.
 
@@ -51,7 +51,7 @@ Dans cet ordre. Aucune exception : un contrôle rouge bloque la livraison.
 pnpm install                                  # jamais npm — voir règle 7
 pnpm db:reset                                 # base locale + schéma + démo
 pnpm db:types                                 # types générés depuis la base
-pnpm db:test                                  # 30 contrôles de sécurité
+pnpm db:test                                  # 36 contrôles de sécurité
 pnpm turbo run lint typecheck test build      # 20 tâches
 pnpm format:check                             # ou pnpm format pour corriger
 ```
@@ -151,7 +151,7 @@ croit, et on décide dessus. D'où quatre règles, déjà appliquées :
 
 ## SÉCURITÉ — CE QUI EST DÉJÀ EN PLACE
 
-Quatre failles réelles ont été trouvées, **reproduites avant correction**, puis
+Cinq failles réelles ont été trouvées, **reproduites avant correction**, puis
 verrouillées par des tests vérifiés par sabotage :
 
 | Faille | Correctif |
@@ -160,6 +160,7 @@ verrouillées par des tests vérifiés par sabotage :
 | Redirection ouverte après connexion (`//site-malveillant.fr`) | `packages/core/src/security/safe-redirect.ts` |
 | **N'importe quel compte pouvait forger une entrée du journal d'audit**, au nom du directeur, dans une autre académie | `…_harden_audit_logs.sql` |
 | **Un coach lisait les notes médicales d'un enfant** en interrogeant `players` directement — la vue « sûre » ne protégeait rien | `…_player_medical.sql` |
+| **15 politiques citaient `is_staff()` sans nommer l'académie** : un directeur écrivait chez un concurrent | `…_scope_staff_writes.sql` |
 
 Méthode à reprendre pour toute faille : **reproduire d'abord**, corriger, ajouter
 un contrôle à `supabase/tests/run-rls-tests.sh`, puis **vérifier par sabotage**
@@ -251,7 +252,7 @@ pnpm dev             site web en développement
 pnpm dev:mobile      application mobile (Expo)
 pnpm db:reset        base locale : schéma + données de démonstration
 pnpm db:types        régénérer packages/supabase/database.types.ts
-pnpm db:test         30 contrôles de sécurité RLS
-pnpm test            78 tests unitaires
+pnpm db:test         36 contrôles de sécurité RLS
+pnpm test            91 tests unitaires
 pnpm format          corriger le formatage
 ```
