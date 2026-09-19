@@ -8,5 +8,6 @@ export * from './navigation/role-navigation';
 export * from './people/player-form';
 export * from './utils/age';
 export * from './security/safe-redirect';
+export * from './security/auth-failure';
 export * from './security/password';
 export * from './security/session-freshness';

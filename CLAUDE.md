@@ -31,7 +31,7 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 ```
 44 tables · 6 vues · 16 enums
 73 contrôles de sécurité RLS     (pnpm db:test)
-147 tests unitaires              (pnpm test)
+154 tests unitaires              (pnpm test)
 23 tâches turbo                  (lint typecheck test build)
 6 paquets                        core · diagrams · i18n · supabase · ui · web
 ```
