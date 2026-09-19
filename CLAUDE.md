@@ -21,7 +21,8 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 | 2b | Authentification, mots de passe | ✅ fusionnée (PR #3) |
 | 3 | Tableaux de bord, navigation, paramètres | ✅ fusionnée (PR #4) |
 | 4 | Joueurs, équipes, catégories, coachs | ✅ fusionnée (PR #5) |
-| 4b | Personnel soignant et confidentialité médicale | ⏳ en cours |
+| 4b | Personnel soignant et confidentialité médicale | ⏳ en revue (PR #6) |
+| 5 | Bibliothèque d'exercices | ⏳ en cours — 5.1, 5.2, 5.3, 5.8 livrés |
 
 `main` contient tout. Les branches de phase fusionnées ne servent plus.
 
@@ -30,12 +31,12 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 ```
 44 tables · 6 vues · 16 enums
 57 contrôles de sécurité RLS     (pnpm db:test)
-94 tests unitaires               (pnpm test)
+107 tests unitaires              (pnpm test)
 20 tâches turbo                  (lint typecheck test build)
 ```
 
 Jeu de démonstration : 2 académies, 20 joueurs, 3 coachs, 3 équipes (dont 1 chez un concurrent, pour les tests de cloisonnement),
-7 catégories, 4 évaluations, 3 objectifs. **0 séance, 0 présence** — normal,
+7 catégories, 4 évaluations, 3 objectifs, 20 exercices, 1 médecin, 1 kiné. **0 séance, 0 présence** — normal,
 la prise de présence arrive en phase 7.
 
 Sous RLS, le directeur voit **20 joueurs / 2 équipes**, le coach 1 en voit
@@ -277,6 +278,6 @@ pnpm dev:mobile      application mobile (Expo)
 pnpm db:reset        base locale : schéma + données de démonstration
 pnpm db:types        régénérer packages/supabase/database.types.ts
 pnpm db:test         57 contrôles de sécurité RLS
-pnpm test            94 tests unitaires
+pnpm test            107 tests unitaires
 pnpm format          corriger le formatage
 ```

@@ -3,6 +3,7 @@ export * from './methodology/domains';
 export * from './methodology/session-phases';
 export * from './methodology/constraints';
 export * from './methodology/reliability';
+export * from './library/exercise-search';
 export * from './navigation/role-navigation';
 export * from './people/player-form';
 export * from './utils/age';

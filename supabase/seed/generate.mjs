@@ -355,6 +355,40 @@ sql += `insert into player_dna_profiles (id, player_id, primary_archetype, confi
   (${q(uuid('dna:2'))}, ${q(players[0].id)}, 'CREATEUR', 0.31);\n`;
 writeFileSync(join(here, '04_development.sql'), sql);
 
+// ── 05 · Bibliothèque d'exercices ──────────────────────────────────────────
+// Les 20 exercices FUTURISTE (livrable 5.8) viennent de packages/core/data,
+// comme les domaines et les compétences : un seul référentiel, pour que le
+// contenu du code et celui de la base ne puissent pas diverger.
+const exercises = JSON.parse(
+  readFileSync(join(here, '..', '..', 'packages', 'core', 'data', 'exercises.json'), 'utf8'),
+);
+
+const pgArray = (values) => (values.length === 0 ? "'{}'" : `array[${values.map(q).join(', ')}]`);
+
+sql = header("05 · Bibliothèque d'exercices");
+sql += `insert into exercises (
+  id, academy_id, name, slug, objective, domain_id, age_group_ids, level,
+  default_phase, duration_min, players_min, players_max, goalkeepers, equipment,
+  area_length_m, area_width_m, description, coach_instructions,
+  observation_points, common_mistakes, variations, progression, regression,
+  intensity, cognitive_load, is_published, created_by
+) values\n`;
+sql +=
+  exercises
+    .map(
+      (e) => `  (${q(uuid('ex:' + e.slug))}, ${q(ACADEMY)}, ${q(e.name)}, ${q(e.slug)},
+   ${q(e.objective)}, ${q(uuid('dom:' + e.domain))},
+   ${e.ageGroups.length === 0 ? "'{}'" : `array[${e.ageGroups.map((c) => q(uuid('ag:' + c))).join(', ')}]::uuid[]`},
+   ${q(e.level)}, ${q(e.phase)}, ${e.durationMin}, ${e.playersMin}, ${e.playersMax},
+   ${e.goalkeepers}, ${q(JSON.stringify(e.equipment))}::jsonb,
+   ${e.area[0]}, ${e.area[1]}, ${q(e.description)}, ${q(e.coachInstructions)},
+   ${pgArray(e.observationPoints)}, ${pgArray(e.commonMistakes)}, ${pgArray(e.variations)},
+   ${q(e.progression)}, ${q(e.regression)}, ${e.intensity}, ${e.cognitiveLoad},
+   true, ${q(uuid('u:director'))})`,
+    )
+    .join(',\n') + ';\n';
+writeFileSync(join(here, '05_library.sql'), sql);
+
 console.log(
-  `seed généré — ${domains.length} domaines, ${compRows.length} compétences, ${players.length} joueurs, 2 équipes, 4 fichiers.`,
+  `seed généré — ${domains.length} domaines, ${compRows.length} compétences, ${players.length} joueurs, ${exercises.length} exercices, 5 fichiers.`,
 );
