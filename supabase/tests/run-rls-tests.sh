@@ -168,6 +168,43 @@ check 15 "Une autre académie ne voit aucune donnée médicale" "0" \
 check 15 "Le directeur, lui, voit le dossier médical de son académie" "3" \
   "$(as_user "$DIRECTOR" 'select count(*) from player_medical;')"
 
+# 16 · Cloisonnement des écritures du personnel. `is_staff()` répond « dirige
+#      une académie », pas « laquelle » : quinze politiques s'en contentaient.
+#      Reproduit avant correction — le directeur de FUTURISTE a rattaché un de
+#      ses joueurs à l'équipe d'une AUTRE académie, et la base a accepté.
+FOREIGN_TEAM='9a1d0f6e-0000-4000-8000-000000000002'
+MY_PLAYER=$("${PSQL[@]}" -c "select p.id from players p join academies a on a.id = p.academy_id
+                             where a.slug <> 'autre-academie' limit 1;")
+check 16 "Directeur ne peut pas rattacher son joueur à l'équipe d'une autre académie" "REFUSE" \
+  "$(as_user "$DIRECTOR" "insert into player_team_memberships (player_id, team_id, season)
+     values ('$MY_PLAYER', '$FOREIGN_TEAM', '2026'); select 'ACCEPTE';" \
+     | grep -q 'ACCEPTE' && echo ACCEPTE || echo REFUSE)"
+check 16 "Directeur ne peut pas affecter un coach à l'équipe d'une autre académie" "REFUSE" \
+  "$(as_user "$DIRECTOR" "insert into team_coaches (team_id, coach_id)
+     values ('$FOREIGN_TEAM', '$COACH1'); select 'ACCEPTE';" \
+     | grep -q 'ACCEPTE' && echo ACCEPTE || echo REFUSE)"
+check 16 "Directeur ne voit pas les équipes d'une autre académie" "0" \
+  "$(as_user "$DIRECTOR" "select count(*) from teams where id = '$FOREIGN_TEAM';")"
+
+# Contrôle POSITIF : le cloisonnement ne doit pas avoir bloqué le travail normal.
+# Sans cette ligne, on pourrait tout refuser et croire la sécurité parfaite.
+MY_TEAM=$("${PSQL[@]}" -c "select t.id from teams t join academies a on a.id = t.academy_id
+                           where a.slug <> 'autre-academie' limit 1;")
+check 16 "Directeur rattache bien un joueur à une équipe de SON académie" "ACCEPTE" \
+  "$(as_user "$DIRECTOR" "insert into player_team_memberships (player_id, team_id, season)
+     values ('$MY_PLAYER', '$MY_TEAM', '2099'); select 'ACCEPTE';" \
+     | grep -q 'ACCEPTE' && echo ACCEPTE || echo REFUSE)"
+
+# Invariant structurel : corriger la classe, pas seulement les cas. Une
+# politique qui cite is_staff() sans nommer l'académie laisse un directeur agir
+# chez un concurrent — c'est arrivé trois fois.
+check "R" "Aucune politique is_staff() sans cloisonnement par académie" "0" \
+  "$("${PSQL[@]}" -c "select count(*) from pg_policies
+       where schemaname='public'
+         and (coalesce(qual,'')||coalesce(with_check,'')) like '%is_staff%'
+         and (coalesce(qual,'')||coalesce(with_check,'')) not like '%my_academy%'
+         and (coalesce(qual,'')||coalesce(with_check,'')) not like '%owns_%';")"
+
 # Invariant structurel : aucune donnée sensible ne doit revenir se loger dans
 # `players`, que coachs et familles peuvent lire ligne à ligne.
 check "R" "Aucune colonne médicale sur la table players" "0" \

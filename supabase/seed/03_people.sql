@@ -113,3 +113,19 @@ where p.deleted_at is null
 order by p.created_at, p.id
 limit 3
 on conflict (player_id) do nothing;
+
+-- Une catégorie et une équipe dans l'AUTRE académie.
+-- Elles ne servent qu'aux tests de cloisonnement : sans cible appartenant à un
+-- concurrent, un test d'écriture inter-académies ne peut pas échouer — il
+-- passerait faute d'occasion, pas grâce à la sécurité.
+insert into age_groups (id, academy_id, code, label_fr, min_age, max_age, order_index)
+values ('9a1d0f6e-0000-4000-8000-000000000001',
+        '3c7171ab-5133-4d6c-acd8-1d57244eda02', 'U11', 'U11 (autre académie)', 10, 11, 1)
+on conflict (id) do nothing;
+
+insert into teams (id, academy_id, age_group_id, name, season, gender)
+values ('9a1d0f6e-0000-4000-8000-000000000002',
+        '3c7171ab-5133-4d6c-acd8-1d57244eda02',
+        '9a1d0f6e-0000-4000-8000-000000000001',
+        'Équipe d''une autre académie', '2026', 'MIXED')
+on conflict (id) do nothing;

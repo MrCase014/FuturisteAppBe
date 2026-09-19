@@ -4,6 +4,7 @@ export * from './methodology/session-phases';
 export * from './methodology/constraints';
 export * from './methodology/reliability';
 export * from './navigation/role-navigation';
+export * from './people/player-form';
 export * from './utils/age';
 export * from './security/safe-redirect';
 export * from './security/password';
