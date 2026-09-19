@@ -386,6 +386,6 @@ pnpm dev:mobile      application mobile (Expo)
 pnpm db:reset        base locale : schéma + données de démonstration
 pnpm db:types        régénérer packages/supabase/database.types.ts
 pnpm db:test         73 contrôles de sécurité RLS
-pnpm test            107 tests unitaires
+pnpm test            154 tests unitaires
 pnpm format          corriger le formatage
 ```
