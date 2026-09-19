@@ -41,6 +41,60 @@ const columns = psql(`
   where c.table_schema = 'public'
   order by c.table_name, c.ordinal_position`);
 
+// Clés étrangères : le client Supabase exige un champ `Relationships` sur
+// chaque table et chaque vue, et s'en sert pour typer les jointures.
+const foreignKeys = psql(`
+  select
+    tc.table_name      as source_table,
+    tc.constraint_name as name,
+    kcu.column_name    as source_column,
+    ccu.table_name     as target_table,
+    ccu.column_name    as target_column
+  from information_schema.table_constraints tc
+  join information_schema.key_column_usage kcu
+    on kcu.constraint_name = tc.constraint_name and kcu.table_schema = tc.table_schema
+  join information_schema.constraint_column_usage ccu
+    on ccu.constraint_name = tc.constraint_name and ccu.table_schema = tc.table_schema
+  where tc.constraint_type = 'FOREIGN KEY' and tc.table_schema = 'public'
+  order by tc.table_name, tc.constraint_name`);
+
+const uniqueSingleColumns = new Set(
+  psql(`
+    select c.relname || '.' || a.attname as key
+    from pg_index i
+    join pg_class c on c.oid = i.indrelid
+    join pg_namespace n on n.oid = c.relnamespace
+    join pg_attribute a on a.attrelid = c.oid and a.attnum = i.indkey[0]
+    where n.nspname = 'public' and i.indisunique and i.indnatts = 1`).map((r) => r.key),
+);
+
+const fkByTable = new Map();
+for (const fk of foreignKeys) {
+  if (!fkByTable.has(fk.source_table)) fkByTable.set(fk.source_table, []);
+  fkByTable.get(fk.source_table).push(fk);
+}
+
+/** Bloc `Relationships` d'une table, indenté pour le fichier généré. */
+function relationships(table) {
+  const rows = fkByTable.get(table) ?? [];
+  if (rows.length === 0) return '        Relationships: [];';
+  const entries = rows
+    .map((fk) => {
+      const oneToOne = uniqueSingleColumns.has(`${fk.source_table}.${fk.source_column}`);
+      return [
+        '          {',
+        `            foreignKeyName: '${fk.name}';`,
+        `            columns: ['${fk.source_column}'];`,
+        `            isOneToOne: ${oneToOne};`,
+        `            referencedRelation: '${fk.target_table}';`,
+        `            referencedColumns: ['${fk.target_column}'];`,
+        '          }',
+      ].join('\n');
+    })
+    .join(',\n');
+  return `        Relationships: [\n${entries}\n        ];`;
+}
+
 const enumNames = new Set(enums.map((e) => e.name));
 
 function tsType(col) {
@@ -129,6 +183,7 @@ ${insertBlock(cols)}
         Update: {
 ${updateBlock(cols)}
         };
+${relationships(name)}
       };`,
   )
   .join('\n')}
@@ -140,11 +195,13 @@ ${views
         Row: {
 ${rowBlock(cols)}
         };
+        Relationships: [];
       };`,
   )
   .join('\n')}
     };
     Functions: Record<string, never>;
+    CompositeTypes: Record<string, never>;
     Enums: {
 ${enums.map((e) => `      ${e.name}: ${e.values.map((v) => `'${v}'`).join(' | ')};`).join('\n')}
     };

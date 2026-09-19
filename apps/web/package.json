@@ -6,14 +6,17 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "echo \"@futuriste/web: ESLint pas encore installé (voir docs/17)\"",
     "typecheck": "tsc --noEmit",
     "test": "echo \"@futuriste/web: tests de parcours en Phase 2\""
   },
   "dependencies": {
     "@futuriste/core": "workspace:*",
     "@futuriste/i18n": "workspace:*",
+    "@futuriste/supabase": "workspace:*",
     "@futuriste/ui": "workspace:*",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.116.0",
     "next": "^16.3.5",
     "react": "19.2.3",
     "react-dom": "19.2.3"
