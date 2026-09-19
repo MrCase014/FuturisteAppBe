@@ -19,9 +19,9 @@
     "db:start": "bash scripts/db-local.sh start",
     "db:stop": "bash scripts/db-local.sh stop",
     "db:reset": "bash scripts/db-local.sh reset",
-    "db:types": "node scripts/generate-db-types.mjs",
+    "db:types": "PGHOST=/tmp PGPORT=5433 PGUSER=postgres node scripts/generate-db-types.mjs",
     "db:seed:generate": "node supabase/seed/generate.mjs",
-    "db:test": "bash supabase/tests/run-rls-tests.sh"
+    "db:test": "PGHOST=/tmp PGPORT=5433 PGUSER=postgres bash supabase/tests/run-rls-tests.sh"
   },
   "devDependencies": {
     "prettier": "^3.4.2",
