@@ -94,3 +94,22 @@ insert into player_guardians (id, player_id, guardian_id, relationship, is_prima
   ('1ac22d83-fffd-4101-a6ae-67c52b7ebdc7', 'a63da1de-c32d-4006-b99b-bfb943cbd2ff', '9f80d2fe-d71b-49db-ae19-90f5a3246b73', 'Père', true, now(), now()),
   ('227b32a8-cd26-42c3-a92e-f12bc54afe44', '07c176ee-ca9c-47b6-a2b5-f26ebe2fa816', 'd13704fa-3f0c-47f3-8f45-231179e9563c', 'Mère', true, now(), now()),
   ('7e212cec-ff19-4953-9269-98715eda7856', '9657ad71-fe8e-4082-a7f3-7788d195ad7e', '0fec749e-bb14-4677-b8fd-718bad65e3c8', 'Père', true, null, null);
+
+-- Données médicales de démonstration. Entièrement fictives : aucune donnée
+-- réelle d'enfant ne doit jamais entrer ici (docs/12, règle 2 de CLAUDE.md).
+-- Elles vivent dans player_medical, hors de portée des coachs et des familles.
+insert into player_medical (player_id, academy_id, medical_notes, height_cm, weight_kg) values
+  ('a63da1de-c32d-4006-b99b-bfb943cbd2ff', '206d70cf-eedc-4bea-94d5-1d11b6fe6247', 'Asthme léger — inhalateur dans le sac, à rappeler avant l''effort.', 131, 29),
+  ('9657ad71-fe8e-4082-a7f3-7788d195ad7e', '206d70cf-eedc-4bea-94d5-1d11b6fe6247', 'Allergie aux arachides. Trousse d''urgence confiée au coach référent.', 134, 31),
+  ('98d34003-0a86-4065-9a62-57024b67b202', '206d70cf-eedc-4bea-94d5-1d11b6fe6247', 'Entorse cheville droite en mai. Reprise complète validée.', 129, 28);
+
+-- Une catégorie et une équipe dans l'AUTRE académie.
+-- Elles ne servent qu'aux tests de cloisonnement : sans cible appartenant à un
+-- concurrent, un test d'écriture inter-académies ne peut pas échouer — il
+-- passerait faute d'occasion, pas grâce à la sécurité.
+insert into age_groups (id, academy_id, code, label_fr, min_age, max_age, order_index)
+values ('a0306e37-bd06-4098-bebc-72a559f85a11', '3c7171ab-5133-4d6c-acd8-1d57244eda02', 'U11', 'U11 (autre académie)', 10, 11, 1);
+
+insert into teams (id, academy_id, age_group_id, name, season, gender)
+values ('8aa84c87-2523-45a0-9891-265dc25e84f5', '3c7171ab-5133-4d6c-acd8-1d57244eda02', 'a0306e37-bd06-4098-bebc-72a559f85a11',
+        'Équipe d''une autre académie', '2026-2027', 'MIXED');
