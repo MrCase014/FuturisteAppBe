@@ -64,6 +64,12 @@ export default async function ParametresPage() {
               ? [{ href: '/coachs', label: 'Coachs', hint: 'Qui encadre quelle équipe' }]
               : []),
             { href: '/joueurs', label: 'Joueurs', hint: 'Rechercher, filtrer, consulter' },
+            { href: '/exercices', label: 'Exercices', hint: 'La bibliothèque et ses filtres' },
+            {
+              href: '/referentiel',
+              label: 'Référentiel',
+              hint: 'Les 8 domaines et leurs compétences',
+            },
           ].map((link) => (
             <li key={link.href}>
               <Link

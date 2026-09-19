@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Alert, Card, EmptyState, SectionTitle, StatTile } from '@/components/kit';
 import type { SupabaseServerClient } from '@/lib/supabase/server';
 import { attendanceSummary, coachOverview, visibleTeams } from '@/lib/data/dashboard';
@@ -90,6 +91,16 @@ export async function CoachDashboard({
           </Card>
         )}
       </section>
+
+      <Card>
+        <SectionTitle>Préparer</SectionTitle>
+        <Link href="/exercices" className="text-body text-futuriste-violet underline">
+          Chercher un exercice
+        </Link>
+        <p className="mt-1 text-caption text-content-secondary">
+          Filtrez par catégorie, domaine et nombre de joueurs présents.
+        </p>
+      </Card>
 
       <p className="text-caption text-content-secondary">
         {overview.activeGoals} objectif{overview.activeGoals > 1 ? 's' : ''} actif
