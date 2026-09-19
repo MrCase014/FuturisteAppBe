@@ -41,8 +41,8 @@ jobs:
       - name: Vérifier que le seed est à jour avec le référentiel
         run: |
           pnpm db:seed:generate
-          git diff --exit-code supabase/seed \
-            || (echo "::error::Le seed ne correspond plus à packages/core/data. Lancez : pnpm db:seed:generate" && exit 1)
+          git diff --exit-code supabase/seed supabase/bootstrap \
+            || (echo "::error::Le seed ou l'amorçage de production ne correspond plus à packages/core/data. Lancez : pnpm db:seed:generate" && exit 1)
 
       - name: Format
         run: pnpm format:check

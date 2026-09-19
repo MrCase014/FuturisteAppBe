@@ -303,6 +303,71 @@ check 21 "Le kinésithérapeute non plus" "0" \
 check 21 "Le médecin ne lit aucun profil PLAYER DNA" "0" \
   "$(as_user "$DOCTOR" 'select count(*) from player_dna_profiles;')"
 
+# 22 · ÉLÉVATION DE PRIVILÈGES. Le rôle est la clé de toute la sécurité :
+#      s'il se modifie soi-même, rien de ce qui précède ne tient. Reproduit
+#      avant correction — un parent devenu « médecin du club » lisait les
+#      notes cliniques des vingt-quatre enfants.
+#
+#      On compte les lignes RÉELLEMENT modifiées, jamais l'erreur : une
+#      modification que RLS refuse ne lève rien du tout, elle touche zéro
+#      ligne. Deux de ces contrôles, écrits d'abord à l'erreur, annonçaient
+#      « refusé » alors qu'ils ne testaient rien.
+promotion() { # $1 = acteur ; $2 = UPDATE sans point-virgule final
+  as_user "$1" "with u as ($2 returning 1) select count(*) from u;" \
+    | grep -Eo '^[0-9]+$' || echo 0
+}
+check 22 "Un parent ne peut pas se promouvoir médecin du club" "0" \
+  "$(promotion "$PARENT_A" "update profiles set role='CLUB_DOCTOR' where id='$PARENT_A'")"
+check 22 "Un coach ne peut pas se promouvoir directeur" "0" \
+  "$(promotion "$COACH1" "update profiles set role='ACADEMY_DIRECTOR' where id='$COACH1'")"
+check 22 "Un directeur ne peut pas se nommer super administrateur" "0" \
+  "$(promotion "$DIRECTOR" "update profiles set role='SUPER_ADMIN' where id='$DIRECTOR'")"
+check 22 "Un coach ne peut pas changer d'académie" "0" \
+  "$(promotion "$COACH1" "update profiles set academy_id='$OTHER_ACADEMY' where id='$COACH1'")"
+check 22 "Un parent ne peut pas promouvoir un autre parent" "0" \
+  "$(promotion "$PARENT_A" "update profiles set role='COACH' where id='$PARENT_C'")"
+check 22 "Un coach ne peut pas promouvoir un parent" "0" \
+  "$(promotion "$COACH1" "update profiles set role='COACH' where id='$PARENT_C'")"
+# Le contraire d'une porte fermée n'est pas un mur : la direction doit pouvoir
+# nommer ses coachs, sinon on aurait sécurisé en supprimant l'usage.
+check 22 "Le directeur, lui, nomme bien un coach" "1" \
+  "$(promotion "$DIRECTOR" "update profiles set role='COACH' where id='$PARENT_C'")"
+check 22 "Un parent corrige toujours son propre téléphone" "1" \
+  "$(promotion "$PARENT_A" "update profiles set phone='+237690000000' where id='$PARENT_A'")"
+
+# 23 · RETRAIT D'UN COMPTE. Désactiver quelqu'un doit couper l'accès à la
+#      BASE, pas seulement masquer ses écrans : son jeton reste valide
+#      plusieurs heures après son départ du club. Le scénario se joue en une
+#      seule transaction : le directeur retire le coach, puis le coach reprend
+#      la main, tente sa lecture, puis tente son propre retour.
+#
+#      Mesuré avant correction : le coach retiré lisait encore ses 10 joueurs,
+#      parce que son droit vient de `team_coaches` et non de son rôle.
+retrait=$("${PSQL[@]}" <<SQL 2>&1
+begin;
+\\o /dev/null
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '$DIRECTOR', true);
+update profiles set is_active = false where id = '$COACH1';
+select set_config('request.jwt.claim.sub', '$COACH1', true);
+\\o
+select 'joueurs lus : ' || count(*) from players;
+update profiles set is_active = true where id = '$COACH1';
+rollback;
+SQL
+)
+check 23 "Un coach désactivé ne lit plus aucun joueur" "joueurs lus : 0" \
+  "$(echo "$retrait" | grep -o 'joueurs lus : [0-9]*')"
+check 23 "Un coach désactivé ne peut pas se réactiver lui-même" "1" \
+  "$(echo "$retrait" | grep -c "Personne ne modifie son propre")"
+
+# Invariant structurel : une politique ne compare jamais l'avant et l'après.
+# Le garde-fou qui le fait doit exister, et rester branché.
+check "R" "Le garde-fou d'élévation de privilèges est branché" "1" \
+  "$("${PSQL[@]}" -c "select count(*) from pg_trigger
+       where tgrelid = 'public.profiles'::regclass
+         and tgname = 'profiles_guard_privileges' and not tgisinternal;")"
+
 # Invariant structurel : corriger la classe, pas seulement les cas. Une
 # politique qui cite is_staff() sans nommer l'académie laisse un directeur agir
 # chez un concurrent — c'est arrivé trois fois.
