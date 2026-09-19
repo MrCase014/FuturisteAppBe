@@ -14,8 +14,14 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css}\""
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,mjs,json,md,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mjs,json,md,css}\"",
+    "db:start": "bash scripts/db-local.sh start",
+    "db:stop": "bash scripts/db-local.sh stop",
+    "db:reset": "bash scripts/db-local.sh reset",
+    "db:types": "node scripts/generate-db-types.mjs",
+    "db:seed:generate": "node supabase/seed/generate.mjs",
+    "db:test": "bash supabase/tests/run-rls-tests.sh"
   },
   "devDependencies": {
     "prettier": "^3.4.2",

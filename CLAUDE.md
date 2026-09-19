@@ -5,10 +5,12 @@ Plateforme web + mobile de formation football pour filles et garçons de 6 à 18
 Propriétaire : FUTURISTE ACADÉMIE FC. Interlocuteur : Voundi Valere Elysée,
 ingénieur IA, **non développeur web**. Langue de travail : **français**.
 
-**Architecture validée le 16/09/2026. PHASE 1 (fondations) terminée.
-Phase en cours : PHASE 2 — base de données, RLS et connexion.**
-La Phase 2 est bloquée sur les 12 tests de sécurité : aucune suite tant qu'ils
-ne passent pas (`docs/05-ROLES-PERMISSIONS.md` §5).
+**PHASES 1 et 2 terminées.** Les 12 tests de sécurité passent
+(`pnpm db:test` — 18 contrôles). Phase en cours : PHASE 2b (authentification
+et redirection par rôle), puis PHASE 3 (tableaux de bord).
+
+⚠️ Toute migration nouvelle impose, avant de livrer : `pnpm db:reset`,
+`pnpm db:types`, puis `pnpm db:test` au vert. Un contrôle rouge bloque tout.
 
 ## Skills du projet — les charger avant d'agir
 | Skill | Quand |

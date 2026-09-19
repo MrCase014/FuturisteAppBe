@@ -1,5 +1,13 @@
+import domainsData from '../../data/domains.json';
+
 /**
  * Les 8 domaines de développement FUTURISTE et leurs compétences.
+ *
+ * SOURCE UNIQUE : `data/domains.json`. Ce même fichier alimente le seed SQL
+ * (`supabase/seed/generate.mjs`), pour que le référentiel du code et celui de
+ * la base ne puissent pas diverger — sans quoi le Session Studio proposerait
+ * des exercices rattachés à des compétences qui n'existent pas en base.
+ *
  * L'ordre des domaines suit l'ordre de slots validé du design system
  * (séparation daltonisme) : voir docs/08-DESIGN-SYSTEM.md.
  */
@@ -21,133 +29,7 @@ export interface DomainDefinition {
   competencies: readonly string[];
 }
 
-export const DOMAINS: readonly DomainDefinition[] = [
-  {
-    code: 'INTELLIGENCE',
-    slot: 1,
-    labelFr: 'Intelligence',
-    competencies: [
-      "prise d'information",
-      'perception',
-      'anticipation',
-      'décision',
-      'orientation du corps',
-      "occupation de l'espace",
-      "création d'espace",
-      'déplacement sans ballon',
-      'reconnaissance des supériorités',
-      'timing',
-    ],
-  },
-  {
-    code: 'PHYSIQUE',
-    slot: 2,
-    labelFr: 'Physique',
-    competencies: [
-      'coordination',
-      'équilibre',
-      'mobilité',
-      'agilité',
-      'endurance',
-      'explosivité',
-      'puissance',
-      'récupération',
-    ],
-  },
-  {
-    code: 'VITESSE',
-    slot: 3,
-    labelFr: 'Vitesse',
-    competencies: [
-      'vitesse de réaction',
-      'accélération',
-      'vitesse maximale',
-      'changement de direction',
-      'vitesse avec ballon',
-      'vitesse de décision',
-    ],
-  },
-  {
-    code: 'EDUCATION',
-    slot: 4,
-    labelFr: 'Éducation',
-    competencies: [
-      'discipline',
-      'hygiène',
-      'sommeil',
-      'nutrition',
-      'école',
-      'responsabilité',
-      "respect de l'arbitre",
-      'fair-play',
-    ],
-  },
-  {
-    code: 'MENTAL',
-    slot: 5,
-    labelFr: 'Mental',
-    competencies: [
-      'confiance',
-      'concentration',
-      'courage',
-      'persévérance',
-      "gestion de l'erreur",
-      'compétitivité',
-      'autonomie',
-      'leadership',
-    ],
-  },
-  {
-    code: 'SOCIAL',
-    slot: 6,
-    labelFr: 'Social',
-    competencies: [
-      'communication',
-      'respect',
-      'coopération',
-      "esprit d'équipe",
-      'leadership collectif',
-    ],
-  },
-  {
-    code: 'TECHNIQUE',
-    slot: 7,
-    labelFr: 'Technique',
-    competencies: [
-      'conduite',
-      'contrôle',
-      'contrôle orienté',
-      'passe courte',
-      'passe longue',
-      'réception',
-      'dribble',
-      '1 contre 1 offensif',
-      'finition',
-      'pied faible',
-      'jeu aérien',
-      'protection du ballon',
-    ],
-  },
-  {
-    code: 'TACTIQUE',
-    slot: 8,
-    labelFr: 'Tactique',
-    competencies: [
-      'largeur',
-      'profondeur',
-      'intervalles',
-      'lignes de passe',
-      'supériorité numérique',
-      'pressing',
-      'couverture',
-      'transition offensive',
-      'transition défensive',
-      'sortie de balle',
-      'progression',
-      'finition collective',
-    ],
-  },
-] as const;
+export const DOMAINS: readonly DomainDefinition[] = domainsData as readonly DomainDefinition[];
 
 export const DOMAIN_ORDER: readonly DomainCode[] = DOMAINS.map((d) => d.code);
 
@@ -158,3 +40,13 @@ export function getDomain(code: DomainCode): DomainDefinition {
 }
 
 export const TOTAL_COMPETENCIES = DOMAINS.reduce((sum, d) => sum + d.competencies.length, 0);
+
+/** Code stable d'une compétence, utilisé comme clé en base. */
+export function competencyCode(label: string): string {
+  return label
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}

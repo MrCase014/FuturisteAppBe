@@ -37,6 +37,12 @@ jobs:
           git diff --exit-code packages/ui/tokens/theme.css \
             || (echo "::error::theme.css n'est pas à jour. Lancez : pnpm --filter @futuriste/ui tokens" && exit 1)
 
+      - name: Vérifier que le seed est à jour avec le référentiel
+        run: |
+          pnpm db:seed:generate
+          git diff --exit-code supabase/seed \
+            || (echo "::error::Le seed ne correspond plus à packages/core/data. Lancez : pnpm db:seed:generate" && exit 1)
+
       - name: Format
         run: pnpm format:check
 
@@ -48,3 +54,69 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+  database:
+    name: Schéma · RLS · 12 tests de sécurité
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: futuriste
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      # Sans PGDATABASE, psql se connecte à la base portant le nom de
+      # l'utilisateur (« postgres ») : les migrations partiraient dans une base
+      # et les tests interrogeraient l'autre.
+      PGDATABASE: futuriste
+      FUTURISTE_DB: futuriste
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Installer les dépendances
+        run: pnpm install --frozen-lockfile
+
+      - name: Client PostgreSQL
+        run: sudo apt-get install -y --no-install-recommends postgresql-client
+
+      - name: Appliquer le schéma et les données de démonstration
+        run: |
+          # -d explicite en plus de PGDATABASE : la cible ne doit dépendre
+          # d'aucun défaut implicite.
+          psql -d "$FUTURISTE_DB" -v ON_ERROR_STOP=1 -q -f supabase/local/00_auth_shim.sql
+          for f in supabase/migrations/*.sql; do
+            echo "→ $(basename "$f")"
+            psql -d "$FUTURISTE_DB" -v ON_ERROR_STOP=1 -q -f "$f"
+          done
+          for f in supabase/seed/*.sql; do
+            psql -d "$FUTURISTE_DB" -v ON_ERROR_STOP=1 -q -f "$f"
+          done
+          echo "Tables créées : $(psql -d "$FUTURISTE_DB" -tAqc "select count(*) from pg_tables where schemaname = 'public'")"
+
+      - name: Garde-fou — le schéma a bien été appliqué dans la bonne base
+        run: |
+          n=$(psql -d "$FUTURISTE_DB" -tAqc "select count(*) from pg_tables where schemaname = 'public'")
+          [ "$n" -eq 42 ] || (echo "::error::$n tables au lieu de 42 dans « $FUTURISTE_DB »." && exit 1)
+
+      - name: 🔒 Les 12 tests de sécurité
+        run: bash supabase/tests/run-rls-tests.sh "$FUTURISTE_DB"
+
+
+      - name: Vérifier que les types TypeScript sont à jour
+        run: |
+          pnpm db:types
+          git diff --exit-code packages/supabase/src/database.types.ts \
+            || (echo "::error::database.types.ts n'est pas à jour. Lancez : pnpm db:types" && exit 1)
