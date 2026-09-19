@@ -24,6 +24,8 @@ const pairs = [
   ['text-primary', colors.text.primary],
   ['text-secondary', colors.text.secondary],
   ['text-muted', colors.text.muted],
+  ['diagram-grass', colors.diagram.grass],
+  ['diagram-line', colors.diagram.line],
   ...colors.domains.map((d) => [`domain-${d.code.toLowerCase()}`, d]),
   ...colors.levels.map((l) => [`level-${l.level}`, l]),
 ];

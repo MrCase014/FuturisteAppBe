@@ -22,7 +22,7 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 | 3 | Tableaux de bord, navigation, paramètres | ✅ fusionnée (PR #4) |
 | 4 | Joueurs, équipes, catégories, coachs | ✅ fusionnée (PR #5) |
 | 4b | Personnel soignant et confidentialité médicale | ⏳ en revue (PR #6) |
-| 5 | Bibliothèque d'exercices | ⏳ en cours — 5.1, 5.2, 5.3, 5.8 livrés |
+| 5 | Bibliothèque d'exercices | ⏳ en cours — 5.1, 5.2, 5.3, 5.5, 5.6, 5.8 livrés · reste 5.4 (vidéos), 5.7 (éditeur), 5.9 (CMS) |
 
 `main` contient tout. Les branches de phase fusionnées ne servent plus.
 
@@ -30,13 +30,14 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 
 ```
 44 tables · 6 vues · 16 enums
-68 contrôles de sécurité RLS     (pnpm db:test)
-107 tests unitaires              (pnpm test)
-20 tâches turbo                  (lint typecheck test build)
+73 contrôles de sécurité RLS     (pnpm db:test)
+147 tests unitaires              (pnpm test)
+23 tâches turbo                  (lint typecheck test build)
+6 paquets                        core · diagrams · i18n · supabase · ui · web
 ```
 
 Jeu de démonstration : 2 académies, 20 joueurs, 3 coachs, 3 équipes (dont 1 chez un concurrent, pour les tests de cloisonnement),
-7 catégories, 4 évaluations, 3 objectifs, 20 exercices, 1 médecin, 1 kiné. **0 séance, 0 présence** — normal,
+7 catégories, 4 évaluations, 3 objectifs, 20 exercices, 3 schémas tactiques, 1 médecin, 1 kiné. **0 séance, 0 présence** — normal,
 la prise de présence arrive en phase 7.
 
 Sous RLS, le directeur voit **20 joueurs / 2 équipes**, le coach 1 en voit
@@ -53,8 +54,8 @@ Dans cet ordre. Aucune exception : un contrôle rouge bloque la livraison.
 pnpm install                                  # jamais npm — voir règle 7
 pnpm db:reset                                 # base locale + schéma + démo
 pnpm db:types                                 # types générés depuis la base
-pnpm db:test                                  # 68 contrôles de sécurité
-pnpm turbo run lint typecheck test build      # 20 tâches
+pnpm db:test                                  # 73 contrôles de sécurité
+pnpm turbo run lint typecheck test build      # 23 tâches
 pnpm format:check                             # ou pnpm format pour corriger
 ```
 
@@ -171,6 +172,39 @@ Pour ajouter un rôle : l'énumération `user_role` se modifie dans une migratio
 ajoutée dans la même transaction — cela passe en local et échoue au
 déploiement). `packages/core` porte `isMedicalRole`, `isStaffRole` et
 `canReadClinicalRecord` : ces tests de rôle s'écrivent une seule fois.
+
+---
+
+## SCHÉMAS TACTIQUES — LE FORMAT ET SON LECTEUR
+
+`packages/diagrams` porte le format (docs/14), sa validation, l'interpolation
+et le vocabulaire visuel. Le web le dessine en SVG, le mobile le dessinera en
+`react-native-svg` — **même fichier, même calcul, même langage**.
+
+Trois choses à savoir avant d'y toucher :
+
+- **Un schéma n'est pas une image.** C'est ~2 Ko de JSON que l'application
+  dessine : il se corrige sans être refait, s'anime, et se lit hors ligne. Les
+  coordonnées vont de 0 à 100, jamais en pixels.
+- **`parseDiagram()` rend des erreurs, pas un booléen.** La colonne `canvas`
+  est du `jsonb` : la base garantit du JSON, pas un schéma. L'écran nomme ce
+  qui cloche plutôt que de tomber — et l'éditeur de 5.7 réutilisera les mêmes
+  messages.
+- **Les schémas livrés sont validés par les tests.** `packages/diagrams/data`
+  passe par le même `parseDiagram()` dans `pnpm test` : un fichier abîmé fait
+  échouer la CI avant d'atteindre la base.
+
+Une image-clé ne cite que ce qui BOUGE, et chaque élément a sa propre piste :
+un joueur nommé en t=0 et t=1 mais pas en t=0,5 glisse d'un bout à l'autre au
+lieu d'attendre puis de sauter.
+
+Le terrain reste **vert et clair en thème sombre** (jeton `diagram-grass`) :
+le vocabulaire tactique est tracé en noir, un terrain sombre le rendrait
+illisible. Et le vocabulaire lui-même ne change jamais de couleur selon le
+thème — sinon il faudrait le réapprendre la nuit.
+
+Pour voir les schémas sans compte : **/maquettes/schemas-tactiques**, page
+publique qui joue les vrais schémas avec le vrai lecteur.
 
 ---
 
@@ -351,7 +385,7 @@ pnpm dev             site web en développement
 pnpm dev:mobile      application mobile (Expo)
 pnpm db:reset        base locale : schéma + données de démonstration
 pnpm db:types        régénérer packages/supabase/database.types.ts
-pnpm db:test         68 contrôles de sécurité RLS
+pnpm db:test         73 contrôles de sécurité RLS
 pnpm test            107 tests unitaires
 pnpm format          corriger le formatage
 ```

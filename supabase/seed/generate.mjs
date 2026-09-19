@@ -420,8 +420,32 @@ sql +=
    true, ${q(uuid('u:director'))})`,
     )
     .join(',\n') + ';\n';
+
+// Les schémas tactiques (5.5/5.6). Ils vivent dans packages/diagrams, avec le
+// code qui les lit et les tests qui les valident : un schéma abîmé fait
+// échouer `pnpm test` avant d'atteindre la base.
+const diagrams = JSON.parse(
+  readFileSync(join(root, 'packages/diagrams/data/diagrams.json'), 'utf8'),
+);
+const knownSlugs = new Set(exercises.map((e) => e.slug));
+for (const d of diagrams) {
+  if (!knownSlugs.has(d.exerciseSlug)) {
+    throw new Error(`schéma rattaché à un exercice inconnu : ${d.exerciseSlug}`);
+  }
+}
+
+sql += `\ninsert into exercise_diagrams (id, academy_id, exercise_id, title, canvas, order_index, created_by) values\n`;
+sql +=
+  diagrams
+    .map(
+      (d, i) => `  (${q(uuid('dg:' + d.exerciseSlug))}, ${q(ACADEMY)},
+   ${q(uuid('ex:' + d.exerciseSlug))}, ${q(d.title)},
+   ${q(JSON.stringify(d.canvas))}::jsonb, ${i}, ${q(uuid('u:director'))})`,
+    )
+    .join(',\n') + ';\n';
+
 writeFileSync(join(here, '05_library.sql'), sql);
 
 console.log(
-  `seed généré — ${domains.length} domaines, ${compRows.length} compétences, ${players.length} joueurs, ${exercises.length} exercices, 5 fichiers + amorçage production.`,
+  `seed généré — ${domains.length} domaines, ${compRows.length} compétences, ${players.length} joueurs, ${exercises.length} exercices, ${diagrams.length} schémas, 5 fichiers + amorçage production.`,
 );

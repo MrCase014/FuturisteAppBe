@@ -8,6 +8,7 @@ import {
 } from './screens-staff';
 import { Bibliotheque, EspaceJoueur, EspaceParent, FicheJoueur } from './screens-famille';
 import { LandingPreview } from './landing-preview';
+import { SchemasTactiques } from './screens-schemas';
 
 export interface MaquetteEntry {
   slug: string;
@@ -47,6 +48,15 @@ export const MAQUETTES: readonly MaquetteEntry[] = [
     phase: 3,
     note: "Une seule question à l'ouverture : qu'est-ce que je fais jeudi ?",
     render: () => <DashboardCoach />,
+  },
+  {
+    slug: 'schemas-tactiques',
+    ref: 'D16',
+    title: 'Schémas tactiques animés',
+    role: 'Coach',
+    phase: 5,
+    note: 'Les vrais schémas, lus par le vrai lecteur : comprendre l’exercice en moins de 10 secondes, sans lire une ligne.',
+    render: () => <SchemasTactiques />,
   },
   {
     slug: 'bibliotheque',

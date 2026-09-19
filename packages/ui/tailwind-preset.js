@@ -41,6 +41,10 @@ module.exports = {
           secondary: v('text-secondary', colors.text.secondary.light),
           muted: v('text-muted', colors.text.muted.light),
         },
+        diagram: {
+          grass: v('diagram-grass', colors.diagram.grass.light),
+          line: v('diagram-line', colors.diagram.line.light),
+        },
         domain: domainColors,
         level: levelColors,
         status: colors.status,

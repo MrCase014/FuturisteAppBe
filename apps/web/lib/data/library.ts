@@ -189,3 +189,32 @@ export async function listDomainsWithCompetencies(
     exerciseCount: counts.get(domain.id) ?? 0,
   }));
 }
+
+export interface ExerciseDiagramRow {
+  id: string;
+  title: string | null;
+  /** Le canevas brut : il est validé à l'affichage, pas ici (voir plus bas). */
+  canvas: unknown;
+}
+
+/**
+ * Les schémas d'un exercice (5.6).
+ *
+ * On rend le canevas SANS le valider : la validation appartient à
+ * `@futuriste/diagrams`, et la faire ici obligerait le mobile à la refaire.
+ * Ce qui arrive de la base est du JSON quelconque jusqu'à preuve du
+ * contraire — c'est l'écran qui en fait la preuve, et qui sait quoi dire
+ * quand elle échoue.
+ */
+export async function exerciseDiagrams(
+  supabase: SupabaseServerClient,
+  exerciseId: string,
+): Promise<ExerciseDiagramRow[]> {
+  const { data } = await supabase
+    .from('exercise_diagrams')
+    .select('id, title, canvas')
+    .eq('exercise_id', exerciseId)
+    .order('order_index');
+
+  return (data ?? []).map((row) => ({ id: row.id, title: row.title, canvas: row.canvas }));
+}

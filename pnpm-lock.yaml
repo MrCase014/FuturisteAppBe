@@ -84,6 +84,9 @@ importers:
       '@futuriste/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@futuriste/diagrams':
+        specifier: workspace:*
+        version: link:../../packages/diagrams
       '@futuriste/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
@@ -132,6 +135,19 @@ importers:
         version: 5.9.3
 
   packages/core:
+    devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.7
+        version: 3.2.7(@types/node@22.20.3)(jiti@1.21.7)(lightningcss@1.33.0)(terser@5.51.2)(yaml@2.9.1)
+
+  packages/diagrams:
+    dependencies:
+      '@futuriste/ui':
+        specifier: workspace:*
+        version: link:../ui
     devDependencies:
       typescript:
         specifier: ^5.9.3
@@ -5365,9 +5381,7 @@ snapshots:
       metro-runtime: 0.84.5
     transitivePeerDependencies:
       - '@babel/core'
-      - bufferutil
       - supports-color
-      - utf-8-validate
 
   '@react-native/normalize-colors@0.86.3': {}
 

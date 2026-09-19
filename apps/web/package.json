@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@futuriste/core": "workspace:*",
+    "@futuriste/diagrams": "workspace:*",
     "@futuriste/i18n": "workspace:*",
     "@futuriste/supabase": "workspace:*",
     "@futuriste/ui": "workspace:*",

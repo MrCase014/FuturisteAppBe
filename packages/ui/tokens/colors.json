@@ -119,5 +119,10 @@
     "warning": "#FAB219",
     "serious": "#EC835A",
     "critical": "#D03B3B"
+  },
+  "_diagramComment": "Le terrain des sch\u00e9mas tactiques (docs/14). Il reste VERT ET CLAIR en th\u00e8me sombre : le vocabulaire tactique est trac\u00e9 en noir, et un terrain sombre le rendrait illisible. Seule l'intensit\u00e9 baisse, pour ne pas \u00e9blouir la nuit au bord du terrain.",
+  "diagram": {
+    "grass": { "light": "#EAF5EC", "dark": "#D8E6DC" },
+    "line": { "light": "#9BC4A8", "dark": "#7FA98D" }
   }
 }

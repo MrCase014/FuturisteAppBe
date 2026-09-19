@@ -4,7 +4,8 @@ import { SESSION_PHASES } from '@futuriste/core';
 import { Card, DomainChip, SectionTitle } from '@/components/kit';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { requireSessionProfile } from '@/lib/supabase/session';
-import { exerciseDetail } from '@/lib/data/library';
+import { DiagramSection } from '@/components/diagrams/diagram-section';
+import { exerciseDetail, exerciseDiagrams } from '@/lib/data/library';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,6 +46,7 @@ export default async function FicheExercicePage({ params }: { params: Promise<{ 
   const { slug } = await params;
   const exercise = await exerciseDetail(supabase, slug);
   if (!exercise) notFound();
+  const diagrams = await exerciseDiagrams(supabase, exercise.id);
 
   return (
     <div className="space-y-5">
@@ -100,6 +102,8 @@ export default async function FicheExercicePage({ params }: { params: Promise<{ 
         )}
       </Card>
 
+      <DiagramSection diagrams={diagrams} />
+
       <Card>
         <SectionTitle>Déroulé</SectionTitle>
         <p className="text-body text-content-primary">{exercise.description}</p>
@@ -138,10 +142,6 @@ export default async function FicheExercicePage({ params }: { params: Promise<{ 
           </dl>
         </Card>
       )}
-
-      <p className="text-caption text-content-secondary">
-        Le schéma animé de cet exercice arrive dans la suite de la phase 5.
-      </p>
     </div>
   );
 }

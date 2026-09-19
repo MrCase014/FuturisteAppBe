@@ -14,6 +14,8 @@
   --fut-text-primary: #0B0A14;
   --fut-text-secondary: #52506B;
   --fut-text-muted: #8B89A3;
+  --fut-diagram-grass: #EAF5EC;
+  --fut-diagram-line: #9BC4A8;
   --fut-domain-intelligence: #2A78D6;
   --fut-domain-physique: #EB6834;
   --fut-domain-vitesse: #1BAF7A;
@@ -44,6 +46,8 @@
   --fut-text-primary: #FFFFFF;
   --fut-text-secondary: #C3C2B7;
   --fut-text-muted: #8E8C9E;
+  --fut-diagram-grass: #D8E6DC;
+  --fut-diagram-line: #7FA98D;
   --fut-domain-intelligence: #3987E5;
   --fut-domain-physique: #D95926;
   --fut-domain-vitesse: #199E70;
@@ -74,6 +78,8 @@
   --fut-text-primary: #FFFFFF;
   --fut-text-secondary: #C3C2B7;
   --fut-text-muted: #8E8C9E;
+  --fut-diagram-grass: #D8E6DC;
+  --fut-diagram-line: #7FA98D;
   --fut-domain-intelligence: #3987E5;
   --fut-domain-physique: #D95926;
   --fut-domain-vitesse: #199E70;
