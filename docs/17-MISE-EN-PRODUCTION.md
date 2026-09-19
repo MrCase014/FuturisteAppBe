@@ -145,8 +145,9 @@ documents sont ce qui rend cette traçabilité opposable.
 | Mesure | Où |
 |---|---|
 | 85 politiques RLS, aucune table sans RLS | `supabase/migrations/…_rls_policies.sql` |
-| **21 contrôles de sécurité** rejoués à chaque push | `supabase/tests/run-rls-tests.sh` |
+| **24 contrôles de sécurité** rejoués à chaque push | `supabase/tests/run-rls-tests.sh` |
 | WITH CHECK explicite sur toute politique UPDATE | `…_harden_update_policies.sql` |
+| Journal d'audit infalsifiable et non effaçable | `…_harden_audit_logs.sql` |
 | Aucune suppression physique des données de mineurs | politiques, `deleted_at` |
 | Données médicales absentes de la vue coach | `v_players_coach_safe` |
 | Consentement parental exigé en SQL | `futuriste.is_guardian_of` |
