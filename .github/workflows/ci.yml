@@ -109,7 +109,7 @@ jobs:
       - name: Garde-fou — le schéma a bien été appliqué dans la bonne base
         run: |
           n=$(psql -d "$FUTURISTE_DB" -tAqc "select count(*) from pg_tables where schemaname = 'public'")
-          [ "$n" -eq 43 ] || (echo "::error::$n tables au lieu de 43 dans « $FUTURISTE_DB »." && exit 1)
+          [ "$n" -eq 44 ] || (echo "::error::$n tables au lieu de 44 dans « $FUTURISTE_DB »." && exit 1)
 
       - name: 🔒 Tests de sécurité
         run: bash supabase/tests/run-rls-tests.sh "$FUTURISTE_DB"
