@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { requireSessionProfile } from '@/lib/supabase/session';
-import { playerDetail, playerMedical } from '@/lib/data/people';
+import { playerDetail } from '@/lib/data/people';
 import { PlayerForm } from '../../player-form';
 
 export const metadata = { title: 'Modifier un joueur · FUTURISTE ACADÉMIE FC' };
@@ -21,8 +21,6 @@ export default async function ModifierJoueurPage({ params }: { params: Promise<{
   const player = await playerDetail(supabase, id);
   if (!player) notFound();
 
-  const medical = await playerMedical(supabase, id);
-
   return (
     <div className="space-y-5">
       <Link href={`/joueurs/${id}`} className="text-small text-futuriste-violet underline">
@@ -32,7 +30,6 @@ export default async function ModifierJoueurPage({ params }: { params: Promise<{
         {player.firstName} {player.lastName}
       </h1>
       <PlayerForm
-        canEditMedical
         values={{
           id: player.id,
           firstName: player.firstName,
@@ -45,9 +42,6 @@ export default async function ModifierJoueurPage({ params }: { params: Promise<{
           preferredPosition: player.preferredPosition ?? '',
           objectivesNote: player.objectivesNote ?? '',
           observations: player.observations ?? '',
-          medicalNotes: medical?.medicalNotes ?? '',
-          heightCm: medical?.heightCm === null || medical === null ? '' : String(medical.heightCm),
-          weightKg: medical?.weightKg === null || medical === null ? '' : String(medical.weightKg),
         }}
       />
     </div>

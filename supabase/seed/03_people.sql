@@ -10,6 +10,8 @@ insert into auth.users (id, email) values
   ('d3ea82dc-7f60-417f-9844-e32a162189e8', 'coach1@test.futuriste.fc'),
   ('a18172e5-d998-4c41-bf7d-cef831ad4831', 'coach2@test.futuriste.fc'),
   ('7bd2148c-4469-42d3-bc8c-e7de3990cff7', 'coach3@test.futuriste.fc'),
+  ('0d22f6c4-3349-4b21-b319-82c3ae7657c8', 'medecin@test.futuriste.fc'),
+  ('8b42baa2-ecfa-4aa4-ba2e-c3feb4d79046', 'kine@test.futuriste.fc'),
   ('9f80d2fe-d71b-49db-ae19-90f5a3246b73', 'parenta@test.futuriste.fc'),
   ('d13704fa-3f0c-47f3-8f45-231179e9563c', 'parentb@test.futuriste.fc'),
   ('0fec749e-bb14-4677-b8fd-718bad65e3c8', 'parentc@test.futuriste.fc'),
@@ -26,6 +28,8 @@ insert into profiles (id, academy_id, role, first_name, last_name, email) values
   ('d3ea82dc-7f60-417f-9844-e32a162189e8', '206d70cf-eedc-4bea-94d5-1d11b6fe6247', 'COACH', 'Aminata', 'Bakayoko', 'coach1@test.futuriste.fc'),
   ('a18172e5-d998-4c41-bf7d-cef831ad4831', '206d70cf-eedc-4bea-94d5-1d11b6fe6247', 'COACH', 'Joseph', 'Ndiaye', 'coach2@test.futuriste.fc'),
   ('7bd2148c-4469-42d3-bc8c-e7de3990cff7', '206d70cf-eedc-4bea-94d5-1d11b6fe6247', 'COACH', 'Fatou', 'Camara', 'coach3@test.futuriste.fc'),
+  ('0d22f6c4-3349-4b21-b319-82c3ae7657c8', '206d70cf-eedc-4bea-94d5-1d11b6fe6247', 'CLUB_DOCTOR', 'Nadège', 'Ekwalla', 'medecin@test.futuriste.fc'),
+  ('8b42baa2-ecfa-4aa4-ba2e-c3feb4d79046', '206d70cf-eedc-4bea-94d5-1d11b6fe6247', 'PHYSIOTHERAPIST', 'Cyrille', 'Manga', 'kine@test.futuriste.fc'),
   ('9f80d2fe-d71b-49db-ae19-90f5a3246b73', '206d70cf-eedc-4bea-94d5-1d11b6fe6247', 'PARENT', 'Moussa', 'Diallo', 'parenta@test.futuriste.fc'),
   ('d13704fa-3f0c-47f3-8f45-231179e9563c', '206d70cf-eedc-4bea-94d5-1d11b6fe6247', 'PARENT', 'Clarisse', 'Mbarga', 'parentb@test.futuriste.fc'),
   ('0fec749e-bb14-4677-b8fd-718bad65e3c8', '206d70cf-eedc-4bea-94d5-1d11b6fe6247', 'PARENT', 'Serge', 'Toure', 'parentc@test.futuriste.fc'),
@@ -97,11 +101,20 @@ insert into player_guardians (id, player_id, guardian_id, relationship, is_prima
 
 -- Données médicales de démonstration. Entièrement fictives : aucune donnée
 -- réelle d'enfant ne doit jamais entrer ici (docs/12, règle 2 de CLAUDE.md).
--- Elles vivent dans player_medical, hors de portée des coachs et des familles.
-insert into player_medical (player_id, academy_id, medical_notes, height_cm, weight_kg) values
+-- Elles vivent dans player_medical : le dossier CLINIQUE, réservé au médecin
+-- et aux kinés. Ni la direction, ni les coachs, ni les familles n'y accèdent.
+insert into player_medical (player_id, academy_id, clinical_notes, height_cm, weight_kg) values
   ('a63da1de-c32d-4006-b99b-bfb943cbd2ff', '206d70cf-eedc-4bea-94d5-1d11b6fe6247', 'Asthme léger — inhalateur dans le sac, à rappeler avant l''effort.', 131, 29),
   ('9657ad71-fe8e-4082-a7f3-7788d195ad7e', '206d70cf-eedc-4bea-94d5-1d11b6fe6247', 'Allergie aux arachides. Trousse d''urgence confiée au coach référent.', 134, 31),
   ('98d34003-0a86-4065-9a62-57024b67b202', '206d70cf-eedc-4bea-94d5-1d11b6fe6247', 'Entorse cheville droite en mai. Reprise complète validée.', 129, 28);
+
+-- Aptitude et consignes de terrain. Volontairement SANS diagnostic : c'est
+-- tout l'intérêt de la table — le coach lit « reprise progressive », jamais le
+-- motif clinique qui se trouve, lui, dans player_medical.
+insert into player_health_clearance (player_id, academy_id, status, until, public_reason, emergency_instructions, emergency_contact) values
+  ('a63da1de-c32d-4006-b99b-bfb943cbd2ff', '206d70cf-eedc-4bea-94d5-1d11b6fe6247', 'ADAPTED', current_date + 21, 'Reprise progressive, éviter les efforts longs.', 'En cas de gêne respiratoire : arrêter, faire asseoir, inhalateur dans le sac. Appeler les secours si pas d''amélioration en 5 minutes.', '+237 6 00 00 00 01'),
+  ('9657ad71-fe8e-4082-a7f3-7788d195ad7e', '206d70cf-eedc-4bea-94d5-1d11b6fe6247', 'FIT', null, null, 'Allergie alimentaire : ne rien donner à manger. Trousse d''urgence au bord du terrain.', '+237 6 00 00 00 02'),
+  ('98d34003-0a86-4065-9a62-57024b67b202', '206d70cf-eedc-4bea-94d5-1d11b6fe6247', 'UNFIT', current_date + 10, 'Indisponible, réévaluation prévue.', null, '+237 6 00 00 00 03');
 
 -- Une catégorie et une équipe dans l'AUTRE académie.
 -- Elles ne servent qu'aux tests de cloisonnement : sans cible appartenant à un

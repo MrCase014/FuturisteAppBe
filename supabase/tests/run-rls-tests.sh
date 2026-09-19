@@ -52,6 +52,8 @@ PARENT_A=$(uid 'parenta@test.futuriste.fc')
 PARENT_C=$(uid 'parentc@test.futuriste.fc')
 PLAYER=$(uid 'joueur@test.futuriste.fc')
 OUTSIDER=$(uid 'outsider@test.autre-academie.fc')
+DOCTOR=$(uid 'medecin@test.futuriste.fc')
+PHYSIO=$(uid 'kine@test.futuriste.fc')
 
 echo "LES 12 TESTS DE SÉCURITÉ — base « $DB »"
 echo
@@ -165,7 +167,11 @@ check 15 "Un joueur ne voit pas son propre dossier médical" "0" \
   "$(as_user "$PLAYER" 'select count(*) from player_medical;')"
 check 15 "Une autre académie ne voit aucune donnée médicale" "0" \
   "$(as_user "$OUTSIDER" 'select count(*) from player_medical;')"
-check 15 "Le directeur, lui, voit le dossier médical de son académie" "3" \
+# Depuis l'arrivée du personnel soignant (migration 20260919000004), le
+# directeur ne lit plus les notes cliniques : voir les contrôles 18 à 21.
+# Ce contrôle-ci garde sa raison d'être — vérifier que la table n'est pas
+# ouverte à tous — et c'est le médecin qui y accède désormais.
+check 15 "Le dossier clinique reste fermé à la direction" "0" \
   "$(as_user "$DIRECTOR" 'select count(*) from player_medical;')"
 
 # 16 · Cloisonnement des écritures du personnel. `is_staff()` répond « dirige
@@ -232,6 +238,70 @@ rollback;
 SQL
 )
 check 17 "Le coach affecté voit ses 16 joueurs, et aucun autre" "16" "$recette"
+
+# 18 · CONFIDENTIALITÉ MÉDICALE. Le club a un médecin et des kinés ; leur
+#      donner le dossier clinique impose de le retirer à tous les autres.
+#      Un diagnostic appartient au soignant et à la famille, pas à
+#      l'organigramme — et un coach qui connaît le diagnostic d'un enfant en
+#      parle, au vestiaire ou aux parents des autres.
+check 18 "Le médecin lit le dossier clinique de son académie" "3" \
+  "$(as_user "$DOCTOR" 'select count(*) from player_medical;')"
+check 18 "Le kinésithérapeute aussi" "3" \
+  "$(as_user "$PHYSIO" 'select count(*) from player_medical;')"
+check 18 "Le DIRECTEUR ne lit plus les notes cliniques" "0" \
+  "$(as_user "$DIRECTOR" 'select count(*) from player_medical;')"
+check 18 "Un coach ne lit pas les notes cliniques" "0" \
+  "$(as_user "$COACH1" 'select count(*) from player_medical;')"
+check 18 "Un parent ne lit pas les notes cliniques" "0" \
+  "$(as_user "$PARENT_A" 'select count(*) from player_medical;')"
+check 18 "Un joueur ne lit pas son propre dossier clinique" "0" \
+  "$(as_user "$PLAYER" 'select count(*) from player_medical;')"
+check 18 "Une autre académie ne lit aucun dossier clinique" "0" \
+  "$(as_user "$OUTSIDER" 'select count(*) from player_medical;')"
+
+# 19 · L'aptitude, elle, doit circuler — sinon un coach fait jouer un enfant
+#      qui ne le peut pas. Mais seulement pour SES joueurs.
+check 19 "Le directeur voit l'aptitude de ses joueurs" "3" \
+  "$(as_user "$DIRECTOR" 'select count(*) from player_health_clearance;')"
+check 19 "Le coach 1 voit l'aptitude de ses joueurs" "3" \
+  "$(as_user "$COACH1" 'select count(*) from player_health_clearance;')"
+check 19 "Le coach 2 ne voit pas celle des joueurs du coach 1" "0" \
+  "$(as_user "$COACH2" 'select count(*) from player_health_clearance;')"
+check 19 "Un coach ne voit AUCUNE aptitude hors de ses joueurs" "0" \
+  "$(as_user "$COACH1" 'select count(*) from player_health_clearance c
+     where not futuriste.coaches_player(c.player_id);')"
+check 19 "Le parent voit l'aptitude de son seul enfant" "1" \
+  "$(as_user "$PARENT_A" 'select count(*) from player_health_clearance;')"
+check 19 "Une autre académie ne voit aucune aptitude" "0" \
+  "$(as_user "$OUTSIDER" 'select count(*) from player_health_clearance;')"
+
+# 20 · L'aptitude se déclare par un soignant, pas par la hiérarchie.
+# On compte les lignes RÉELLEMENT modifiées : un UPDATE que RLS ne laisse
+# atteindre aucune ligne ne lève pas d'erreur, il n'en touche aucune. Tester
+# l'absence d'erreur aurait donné un contrôle toujours vert — et faux.
+declare_fit() { # $1 = uuid de l'utilisateur
+  as_user "$1" "with u as (
+      update player_health_clearance set status = 'FIT' returning 1
+    ) select count(*) from u;"
+}
+check 20 "Le directeur ne modifie aucune aptitude" "0" "$(declare_fit "$DIRECTOR")"
+check 20 "Un coach ne modifie aucune aptitude" "0" "$(declare_fit "$COACH1")"
+check 20 "Le médecin, lui, les modifie bien" "3" "$(declare_fit "$DOCTOR")"
+check 20 "Le médecin ne peut pas soigner dans une autre académie" "REFUSE" \
+  "$(as_user "$DOCTOR" "insert into player_medical (player_id, academy_id, clinical_notes)
+     select p.id, '$OTHER_ACADEMY', 'tentative' from players p limit 1;
+     select 'ACCEPTE';" | grep -q 'ACCEPTE' && echo ACCEPTE || echo REFUSE)"
+
+# 21 · Le soignant identifie l'enfant qu'il suit — il ne consulte pas ses
+#      performances. Une évaluation technique n'a aucun usage clinique.
+check 21 "Le médecin identifie les joueurs de son académie" "20" \
+  "$(as_user "$DOCTOR" 'select count(*) from players;')"
+check 21 "Le médecin ne lit aucune évaluation technique" "0" \
+  "$(as_user "$DOCTOR" 'select count(*) from player_evaluations;')"
+check 21 "Le kinésithérapeute non plus" "0" \
+  "$(as_user "$PHYSIO" 'select count(*) from player_evaluation_scores;')"
+check 21 "Le médecin ne lit aucun profil PLAYER DNA" "0" \
+  "$(as_user "$DOCTOR" 'select count(*) from player_dna_profiles;')"
 
 # Invariant structurel : corriger la classe, pas seulement les cas. Une
 # politique qui cite is_staff() sans nommer l'académie laisse un directeur agir

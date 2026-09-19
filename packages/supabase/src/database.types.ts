@@ -3,7 +3,7 @@
  * Source : le schéma PostgreSQL. Régénérer après toute migration :
  *   pnpm db:types
  *
- * 43 tables · 6 vues · 15 types énumérés.
+ * 44 tables · 6 vues · 16 types énumérés.
  */
 
 export type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
@@ -1903,11 +1903,69 @@ export interface Database {
           }
         ];
       };
+      player_health_clearance: {
+        Row: {
+          player_id: string;
+          academy_id: string;
+          status: Database['public']['Enums']['fitness_status'];
+          until: string | null;
+          public_reason: string | null;
+          emergency_instructions: string | null;
+          emergency_contact: string | null;
+          updated_by: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          player_id: string;
+          academy_id: string;
+          status?: Database['public']['Enums']['fitness_status'];
+          until?: string | null;
+          public_reason?: string | null;
+          emergency_instructions?: string | null;
+          emergency_contact?: string | null;
+          updated_by?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          player_id?: string;
+          academy_id?: string;
+          status?: Database['public']['Enums']['fitness_status'];
+          until?: string | null;
+          public_reason?: string | null;
+          emergency_instructions?: string | null;
+          emergency_contact?: string | null;
+          updated_by?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'player_health_clearance_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: false;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'player_health_clearance_player_id_fkey';
+            columns: ['player_id'];
+            isOneToOne: true;
+            referencedRelation: 'players';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'player_health_clearance_updated_by_fkey';
+            columns: ['updated_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
       player_medical: {
         Row: {
           player_id: string;
           academy_id: string;
-          medical_notes: string | null;
+          clinical_notes: string | null;
           height_cm: number | null;
           weight_kg: number | null;
           updated_by: string | null;
@@ -1916,7 +1974,7 @@ export interface Database {
         Insert: {
           player_id: string;
           academy_id: string;
-          medical_notes?: string | null;
+          clinical_notes?: string | null;
           height_cm?: number | null;
           weight_kg?: number | null;
           updated_by?: string | null;
@@ -1925,7 +1983,7 @@ export interface Database {
         Update: {
           player_id?: string;
           academy_id?: string;
-          medical_notes?: string | null;
+          clinical_notes?: string | null;
           height_cm?: number | null;
           weight_kg?: number | null;
           updated_by?: string | null;
@@ -2722,6 +2780,7 @@ export interface Database {
       evaluation_context: 'SESSION' | 'MATCH' | 'PERIODIC' | 'SELF';
       event_type: 'TRAINING' | 'MATCH' | 'TOURNAMENT' | 'MEETING' | 'TEST' | 'OTHER';
       exercise_level: 'DECOUVERTE' | 'INTERMEDIAIRE' | 'AVANCE';
+      fitness_status: 'FIT' | 'ADAPTED' | 'UNFIT';
       gender: 'F' | 'M' | 'MIXED';
       goal_status: 'ACTIVE' | 'ACHIEVED' | 'PAUSED' | 'ARCHIVED';
       match_event_type: 'GOAL' | 'ASSIST' | 'SHOT' | 'CHANCE' | 'RECOVERY' | 'LOSS' | 'DUEL_WON' | 'DUEL_LOST' | 'KEY_PASS' | 'SAVE' | 'YELLOW' | 'RED' | 'SUB_IN' | 'SUB_OUT';
@@ -2731,7 +2790,7 @@ export interface Database {
       session_origin: 'MANUAL' | 'TEMPLATE' | 'RULE_ENGINE' | 'AI';
       session_phase: 'ACCUEIL' | 'ACTIVATION' | 'TECHNIQUE' | 'JEU_REDUIT' | 'JEU_POSITION' | 'SITUATION_REELLE' | 'RETOUR_CALME';
       session_status: 'DRAFT' | 'PLANNED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
-      user_role: 'SUPER_ADMIN' | 'ACADEMY_DIRECTOR' | 'COACH' | 'PLAYER' | 'PARENT';
+      user_role: 'SUPER_ADMIN' | 'ACADEMY_DIRECTOR' | 'COACH' | 'PLAYER' | 'PARENT' | 'CLUB_DOCTOR' | 'PHYSIOTHERAPIST';
     };
   };
 }

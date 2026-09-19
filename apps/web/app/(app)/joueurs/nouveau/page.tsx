@@ -20,7 +20,7 @@ export default async function NouveauJoueurPage() {
         ← Tous les joueurs
       </Link>
       <h1 className="font-display text-h1 text-content-primary">Nouveau joueur</h1>
-      <PlayerForm canEditMedical />
+      <PlayerForm />
     </div>
   );
 }

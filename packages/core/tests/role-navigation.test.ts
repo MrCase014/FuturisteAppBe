@@ -8,7 +8,15 @@ import {
   type UserRole,
 } from '../src/navigation/role-navigation';
 
-const ROLES: UserRole[] = ['SUPER_ADMIN', 'ACADEMY_DIRECTOR', 'COACH', 'PLAYER', 'PARENT'];
+const ROLES: UserRole[] = [
+  'SUPER_ADMIN',
+  'ACADEMY_DIRECTOR',
+  'COACH',
+  'PLAYER',
+  'PARENT',
+  'CLUB_DOCTOR',
+  'PHYSIOTHERAPIST',
+];
 
 describe('navigation par rôle', () => {
   it('chaque rôle a une navigation', () => {
@@ -63,6 +71,29 @@ describe('navigation par rôle', () => {
 
   it('le directeur et le super administrateur voient la même chose', () => {
     expect(navigationForRole('SUPER_ADMIN')).toEqual(navigationForRole('ACADEMY_DIRECTOR'));
+  });
+
+  it('le médecin et le kinésithérapeute voient la même chose', () => {
+    expect(navigationForRole('CLUB_DOCTOR')).toEqual(navigationForRole('PHYSIOTHERAPIST'));
+  });
+
+  it("le personnel soignant n'a aucune entrée de performance", () => {
+    // Un soignant n'a pas d'usage clinique des séances, des statistiques ni de
+    // la progression technique. Lui proposer ces menus serait lui promettre des
+    // pages que la base lui refusera.
+    for (const role of ['CLUB_DOCTOR', 'PHYSIOTHERAPIST'] as UserRole[]) {
+      const keys = navigationForRole(role).map((e) => e.key);
+      expect(keys).not.toContain('seances');
+      expect(keys).not.toContain('stats');
+      expect(keys).not.toContain('progression');
+      expect(keys).toContain('infirmerie');
+    }
+  });
+
+  it("l'infirmerie n'est proposée qu'au personnel soignant", () => {
+    for (const role of ['ACADEMY_DIRECTOR', 'COACH', 'PLAYER', 'PARENT'] as UserRole[]) {
+      expect(navigationForRole(role).map((e) => e.key)).not.toContain('infirmerie');
+    }
   });
 
   it('une sous-page allume son entrée parente', () => {

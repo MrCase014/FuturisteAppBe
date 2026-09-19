@@ -20,16 +20,17 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 | 2 | 42 tables, RLS, tests de sécurité | ✅ fusionnée (PR #2) |
 | 2b | Authentification, mots de passe | ✅ fusionnée (PR #3) |
 | 3 | Tableaux de bord, navigation, paramètres | ✅ fusionnée (PR #4) |
-| 4 | Joueurs, équipes, catégories, coachs | ⏳ en cours |
+| 4 | Joueurs, équipes, catégories, coachs | ✅ fusionnée (PR #5) |
+| 4b | Personnel soignant et confidentialité médicale | ⏳ en cours |
 
 `main` contient tout. Les branches de phase fusionnées ne servent plus.
 
 ### Chiffres de référence (si l'un change sans raison, c'est un bug)
 
 ```
-43 tables · 6 vues · 15 enums
-36 contrôles de sécurité RLS     (pnpm db:test)
-91 tests unitaires               (pnpm test)
+44 tables · 6 vues · 16 enums
+57 contrôles de sécurité RLS     (pnpm db:test)
+94 tests unitaires               (pnpm test)
 20 tâches turbo                  (lint typecheck test build)
 ```
 
@@ -51,7 +52,7 @@ Dans cet ordre. Aucune exception : un contrôle rouge bloque la livraison.
 pnpm install                                  # jamais npm — voir règle 7
 pnpm db:reset                                 # base locale + schéma + démo
 pnpm db:types                                 # types générés depuis la base
-pnpm db:test                                  # 36 contrôles de sécurité
+pnpm db:test                                  # 57 contrôles de sécurité
 pnpm turbo run lint typecheck test build      # 20 tâches
 pnpm format:check                             # ou pnpm format pour corriger
 ```
@@ -146,6 +147,29 @@ croit, et on décide dessus. D'où quatre règles, déjà appliquées :
   évalué douze fois.
 - **Écran d'une phase future → annoncé avec son numéro de phase**, ni masqué
   (le produit paraîtrait plus pauvre) ni cliquable (mènerait à une page vide).
+
+---
+
+## CONFIDENTIALITÉ MÉDICALE — QUI VOIT QUOI
+
+Trois niveaux, trois tables, parce que RLS défend des lignes et non des colonnes.
+
+| | Dossier clinique | Aptitude + urgence | Évaluations techniques |
+|---|:---:|:---:|:---:|
+| Médecin, kinésithérapeute | ✅ lecture + écriture | ✅ écriture | ❌ |
+| Direction / présidence | ❌ | ✅ lecture | ✅ |
+| Coach | ❌ | ✅ ses joueurs | ✅ ses joueurs |
+| Parent | ❌ | ✅ son enfant | selon consentement |
+| Joueur | ❌ | ❌ | ✅ le sien |
+
+Le dossier clinique porte les diagnostics ; l'aptitude n'en porte **aucun** —
+on y écrit « reprise progressive », jamais le motif médical. Voir ADR-18.
+
+Pour ajouter un rôle : l'énumération `user_role` se modifie dans une migration
+**séparée** de celle qui s'en sert (PostgreSQL refuse d'utiliser une valeur
+ajoutée dans la même transaction — cela passe en local et échoue au
+déploiement). `packages/core` porte `isMedicalRole`, `isStaffRole` et
+`canReadClinicalRecord` : ces tests de rôle s'écrivent une seule fois.
 
 ---
 
@@ -252,7 +276,7 @@ pnpm dev             site web en développement
 pnpm dev:mobile      application mobile (Expo)
 pnpm db:reset        base locale : schéma + données de démonstration
 pnpm db:types        régénérer packages/supabase/database.types.ts
-pnpm db:test         36 contrôles de sécurité RLS
-pnpm test            91 tests unitaires
+pnpm db:test         57 contrôles de sécurité RLS
+pnpm test            94 tests unitaires
 pnpm format          corriger le formatage
 ```

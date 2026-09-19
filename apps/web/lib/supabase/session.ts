@@ -60,6 +60,8 @@ export const HOME_BY_ROLE: Record<Role, string> = {
   COACH: '/tableau-de-bord',
   PLAYER: '/tableau-de-bord',
   PARENT: '/tableau-de-bord',
+  CLUB_DOCTOR: '/tableau-de-bord',
+  PHYSIOTHERAPIST: '/tableau-de-bord',
 };
 
 export const ROLE_LABEL: Record<Role, string> = {
@@ -68,4 +70,6 @@ export const ROLE_LABEL: Record<Role, string> = {
   COACH: 'Coach',
   PLAYER: 'Joueur',
   PARENT: 'Parent',
+  CLUB_DOCTOR: 'Médecin du club',
+  PHYSIOTHERAPIST: 'Kinésithérapeute',
 };

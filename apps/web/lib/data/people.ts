@@ -165,38 +165,104 @@ export async function playerDetail(
   };
 }
 
-export interface PlayerMedical {
-  medicalNotes: string | null;
+export interface PlayerClinicalRecord {
+  clinicalNotes: string | null;
   heightCm: number | null;
   weightKg: number | null;
   updatedAt: string;
 }
 
 /**
- * Dossier médical — `null` pour tout le monde sauf la direction.
+ * Dossier CLINIQUE — diagnostics, traitements, mensurations.
  *
- * Ce n'est PAS cette fonction qui protège la donnée : la politique RLS de
- * `player_medical` ne renvoie aucune ligne à un coach, à un parent ou au
- * joueur lui-même. Appeler cette fonction depuis un écran coach ne fuite
- * rien — elle renvoie simplement null.
+ * Renvoie `null` à tout le monde sauf au médecin et aux kinésithérapeutes de
+ * l'académie. Ce n'est PAS cette fonction qui protège la donnée : la politique
+ * RLS de `player_medical` ne renvoie aucune ligne aux autres. L'appeler depuis
+ * un écran de direction ne fuite rien — elle renvoie null.
+ *
+ * Depuis la migration 20260919000004, la direction elle-même en est exclue :
+ * un diagnostic appartient au soignant et à la famille, pas à l'organigramme.
  */
-export async function playerMedical(
+export async function playerClinicalRecord(
   supabase: SupabaseServerClient,
   playerId: string,
-): Promise<PlayerMedical | null> {
+): Promise<PlayerClinicalRecord | null> {
   const { data } = await supabase
     .from('player_medical')
-    .select('medical_notes, height_cm, weight_kg, updated_at')
+    .select('clinical_notes, height_cm, weight_kg, updated_at')
     .eq('player_id', playerId)
     .maybeSingle();
 
   if (!data) return null;
   return {
-    medicalNotes: data.medical_notes,
+    clinicalNotes: data.clinical_notes,
     heightCm: data.height_cm,
     weightKg: data.weight_kg === null ? null : Number(data.weight_kg),
     updatedAt: data.updated_at,
   };
+}
+
+export type FitnessStatus = Enums<'fitness_status'>;
+
+export interface HealthClearance {
+  playerId: string;
+  status: FitnessStatus;
+  until: string | null;
+  publicReason: string | null;
+  emergencyInstructions: string | null;
+  emergencyContact: string | null;
+  updatedAt: string;
+}
+
+function toClearance(row: {
+  player_id: string;
+  status: FitnessStatus;
+  until: string | null;
+  public_reason: string | null;
+  emergency_instructions: string | null;
+  emergency_contact: string | null;
+  updated_at: string;
+}): HealthClearance {
+  return {
+    playerId: row.player_id,
+    status: row.status,
+    until: row.until,
+    publicReason: row.public_reason,
+    emergencyInstructions: row.emergency_instructions,
+    emergencyContact: row.emergency_contact,
+    updatedAt: row.updated_at,
+  };
+}
+
+const CLEARANCE_COLUMNS =
+  'player_id, status, until, public_reason, emergency_instructions, emergency_contact, updated_at';
+
+/**
+ * Aptitude et consigne de terrain d'un joueur.
+ *
+ * Contrairement au dossier clinique, celle-ci DOIT circuler : un coach qui
+ * l'ignore fait jouer un enfant qui ne le peut pas. Elle ne contient aucun
+ * diagnostic — « reprise progressive », jamais le motif médical.
+ */
+export async function playerClearance(
+  supabase: SupabaseServerClient,
+  playerId: string,
+): Promise<HealthClearance | null> {
+  const { data } = await supabase
+    .from('player_health_clearance')
+    .select(CLEARANCE_COLUMNS)
+    .eq('player_id', playerId)
+    .maybeSingle();
+  return data ? toClearance(data) : null;
+}
+
+/** Toutes les aptitudes visibles par l'appelant. RLS décide de l'étendue. */
+export async function listClearances(supabase: SupabaseServerClient): Promise<HealthClearance[]> {
+  const { data } = await supabase
+    .from('player_health_clearance')
+    .select(CLEARANCE_COLUMNS)
+    .order('status');
+  return (data ?? []).map(toClearance);
 }
 
 export interface TeamRow {
