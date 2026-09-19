@@ -3,7 +3,7 @@
  * Source : le schéma PostgreSQL. Régénérer après toute migration :
  *   pnpm db:types
  *
- * 42 tables · 6 vues · 15 types énumérés.
+ * 43 tables · 6 vues · 15 types énumérés.
  */
 
 export type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
@@ -1903,6 +1903,58 @@ export interface Database {
           }
         ];
       };
+      player_medical: {
+        Row: {
+          player_id: string;
+          academy_id: string;
+          medical_notes: string | null;
+          height_cm: number | null;
+          weight_kg: number | null;
+          updated_by: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          player_id: string;
+          academy_id: string;
+          medical_notes?: string | null;
+          height_cm?: number | null;
+          weight_kg?: number | null;
+          updated_by?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          player_id?: string;
+          academy_id?: string;
+          medical_notes?: string | null;
+          height_cm?: number | null;
+          weight_kg?: number | null;
+          updated_by?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'player_medical_academy_id_fkey';
+            columns: ['academy_id'];
+            isOneToOne: false;
+            referencedRelation: 'academies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'player_medical_player_id_fkey';
+            columns: ['player_id'];
+            isOneToOne: true;
+            referencedRelation: 'players';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'player_medical_updated_by_fkey';
+            columns: ['updated_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
       player_statistics: {
         Row: {
           id: string;
@@ -2024,8 +2076,6 @@ export interface Database {
           gender: Database['public']['Enums']['gender'];
           photo_url: string | null;
           dominant_foot: Database['public']['Enums']['dominant_foot'] | null;
-          height_cm: number | null;
-          weight_kg: number | null;
           preferred_position: string | null;
           experienced_positions: string[];
           jersey_number: number | null;
@@ -2033,7 +2083,6 @@ export interface Database {
           status: Database['public']['Enums']['player_status'];
           objectives_note: string | null;
           observations: string | null;
-          medical_notes: string | null;
           deleted_at: string | null;
           created_at: string;
           updated_at: string;
@@ -2048,8 +2097,6 @@ export interface Database {
           gender: Database['public']['Enums']['gender'];
           photo_url?: string | null;
           dominant_foot?: Database['public']['Enums']['dominant_foot'] | null;
-          height_cm?: number | null;
-          weight_kg?: number | null;
           preferred_position?: string | null;
           experienced_positions?: string[];
           jersey_number?: number | null;
@@ -2057,7 +2104,6 @@ export interface Database {
           status?: Database['public']['Enums']['player_status'];
           objectives_note?: string | null;
           observations?: string | null;
-          medical_notes?: string | null;
           deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -2072,8 +2118,6 @@ export interface Database {
           gender?: Database['public']['Enums']['gender'];
           photo_url?: string | null;
           dominant_foot?: Database['public']['Enums']['dominant_foot'] | null;
-          height_cm?: number | null;
-          weight_kg?: number | null;
           preferred_position?: string | null;
           experienced_positions?: string[];
           jersey_number?: number | null;
@@ -2081,7 +2125,6 @@ export interface Database {
           status?: Database['public']['Enums']['player_status'];
           objectives_note?: string | null;
           observations?: string | null;
-          medical_notes?: string | null;
           deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;

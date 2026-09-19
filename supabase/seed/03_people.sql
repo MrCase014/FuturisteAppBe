@@ -94,3 +94,22 @@ insert into player_guardians (id, player_id, guardian_id, relationship, is_prima
   ('1ac22d83-fffd-4101-a6ae-67c52b7ebdc7', 'a63da1de-c32d-4006-b99b-bfb943cbd2ff', '9f80d2fe-d71b-49db-ae19-90f5a3246b73', 'Père', true, now(), now()),
   ('227b32a8-cd26-42c3-a92e-f12bc54afe44', '07c176ee-ca9c-47b6-a2b5-f26ebe2fa816', 'd13704fa-3f0c-47f3-8f45-231179e9563c', 'Mère', true, now(), now()),
   ('7e212cec-ff19-4953-9269-98715eda7856', '9657ad71-fe8e-4082-a7f3-7788d195ad7e', '0fec749e-bb14-4677-b8fd-718bad65e3c8', 'Père', true, null, null);
+
+-- Données médicales de démonstration. Entièrement fictives : aucune donnée
+-- réelle d'enfant ne doit jamais entrer ici (docs/12, règle 2 de CLAUDE.md).
+-- Elles vivent dans player_medical, hors de portée des coachs et des familles.
+insert into player_medical (player_id, academy_id, medical_notes, height_cm, weight_kg)
+select p.id, p.academy_id,
+       case row_number() over (order by p.created_at, p.id)
+         when 1 then 'Asthme léger — inhalateur dans le sac, à rappeler avant l''effort.'
+         when 2 then 'Allergie aux arachides. Trousse d''urgence confiée au coach référent.'
+         when 3 then 'Entorse cheville droite en mai. Reprise complète validée.'
+       end,
+       130 + (row_number() over (order by p.created_at, p.id))::int,
+       28 + (row_number() over (order by p.created_at, p.id))::int
+from players p
+where p.deleted_at is null
+  and p.academy_id = (select id from academies where slug <> 'autre-academie' limit 1)
+order by p.created_at, p.id
+limit 3
+on conflict (player_id) do nothing;

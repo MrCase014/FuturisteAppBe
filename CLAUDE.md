@@ -27,8 +27,8 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 ### Chiffres de référence (si l'un change sans raison, c'est un bug)
 
 ```
-42 tables · 6 vues · 15 enums · 100 clés étrangères
-24 contrôles de sécurité RLS     (pnpm db:test)
+43 tables · 6 vues · 15 enums
+30 contrôles de sécurité RLS     (pnpm db:test)
 78 tests unitaires               (pnpm test)
 20 tâches turbo                  (lint typecheck test build)
 ```
@@ -51,7 +51,7 @@ Dans cet ordre. Aucune exception : un contrôle rouge bloque la livraison.
 pnpm install                                  # jamais npm — voir règle 7
 pnpm db:reset                                 # base locale + schéma + démo
 pnpm db:types                                 # types générés depuis la base
-pnpm db:test                                  # 24 contrôles de sécurité
+pnpm db:test                                  # 30 contrôles de sécurité
 pnpm turbo run lint typecheck test build      # 20 tâches
 pnpm format:check                             # ou pnpm format pour corriger
 ```
@@ -151,7 +151,7 @@ croit, et on décide dessus. D'où quatre règles, déjà appliquées :
 
 ## SÉCURITÉ — CE QUI EST DÉJÀ EN PLACE
 
-Trois failles réelles ont été trouvées, **reproduites avant correction**, puis
+Quatre failles réelles ont été trouvées, **reproduites avant correction**, puis
 verrouillées par des tests vérifiés par sabotage :
 
 | Faille | Correctif |
@@ -159,6 +159,7 @@ verrouillées par des tests vérifiés par sabotage :
 | Un directeur pouvait déplacer une évaluation vers une **autre académie** (`USING` sans `WITH CHECK`) | `…_harden_update_policies.sql` |
 | Redirection ouverte après connexion (`//site-malveillant.fr`) | `packages/core/src/security/safe-redirect.ts` |
 | **N'importe quel compte pouvait forger une entrée du journal d'audit**, au nom du directeur, dans une autre académie | `…_harden_audit_logs.sql` |
+| **Un coach lisait les notes médicales d'un enfant** en interrogeant `players` directement — la vue « sûre » ne protégeait rien | `…_player_medical.sql` |
 
 Méthode à reprendre pour toute faille : **reproduire d'abord**, corriger, ajouter
 un contrôle à `supabase/tests/run-rls-tests.sh`, puis **vérifier par sabotage**
@@ -250,7 +251,7 @@ pnpm dev             site web en développement
 pnpm dev:mobile      application mobile (Expo)
 pnpm db:reset        base locale : schéma + données de démonstration
 pnpm db:types        régénérer packages/supabase/database.types.ts
-pnpm db:test         24 contrôles de sécurité RLS
+pnpm db:test         30 contrôles de sécurité RLS
 pnpm test            78 tests unitaires
 pnpm format          corriger le formatage
 ```

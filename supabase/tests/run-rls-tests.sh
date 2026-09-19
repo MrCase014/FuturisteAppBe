@@ -152,6 +152,29 @@ check 14 "Un parent ne peut pas signer une entrée d'audit au nom du directeur" 
 check 14 "Un coach ne lit pas le journal d'audit" "0" \
   "$(as_user "$COACH1" 'select count(*) from audit_logs;')"
 
+# 15 · Données médicales des enfants. La vue coach les omettait, mais RLS filtre
+#      des LIGNES et non des COLONNES : un coach lisait `players.medical_notes`
+#      en interrogeant la table directement — et la clé publique du navigateur
+#      suffit à le faire sans passer par l'application. Elles vivent désormais
+#      dans `player_medical`, où une ligne inaccessible est une ligne absente.
+check 15 "Un coach ne voit aucune donnée médicale" "0" \
+  "$(as_user "$COACH1" 'select count(*) from player_medical;')"
+check 15 "Un parent ne voit aucune donnée médicale" "0" \
+  "$(as_user "$PARENT_A" 'select count(*) from player_medical;')"
+check 15 "Un joueur ne voit pas son propre dossier médical" "0" \
+  "$(as_user "$PLAYER" 'select count(*) from player_medical;')"
+check 15 "Une autre académie ne voit aucune donnée médicale" "0" \
+  "$(as_user "$OUTSIDER" 'select count(*) from player_medical;')"
+check 15 "Le directeur, lui, voit le dossier médical de son académie" "3" \
+  "$(as_user "$DIRECTOR" 'select count(*) from player_medical;')"
+
+# Invariant structurel : aucune donnée sensible ne doit revenir se loger dans
+# `players`, que coachs et familles peuvent lire ligne à ligne.
+check "R" "Aucune colonne médicale sur la table players" "0" \
+  "$("${PSQL[@]}" -c "select count(*) from information_schema.columns
+       where table_schema='public' and table_name='players'
+         and column_name in ('medical_notes','height_cm','weight_kg');")"
+
 # Invariant structurel : plus fort qu'un test sur des données, car il tient
 # même sur une table vide — et c'est précisément sur des tables vides qu'un
 # test de données donne une fausse assurance.
