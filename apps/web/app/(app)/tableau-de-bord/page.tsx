@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { Alert, Card, SectionTitle } from '@/components/kit';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { requireSessionProfile } from '@/lib/supabase/session';
+import { isMedicalRole, isStaffRole } from '@futuriste/core';
 import { DirectorDashboard } from './director';
 import { CoachDashboard } from './coach';
 
@@ -23,9 +24,14 @@ export default async function TableauDeBordPage() {
   // `!` qui masquerait le jour où cette page changerait.
   if (!supabase) redirect('/connexion');
 
-  if (profile.role === 'SUPER_ADMIN' || profile.role === 'ACADEMY_DIRECTOR') {
+  if (isStaffRole(profile.role)) {
     return <DirectorDashboard supabase={supabase} academyId={profile.academyId} />;
   }
+
+  // Le personnel soignant part directement à l'infirmerie : c'est son écran de
+  // travail, et le tableau de bord de l'académie ne lui apprendrait rien qu'il
+  // ait le droit de voir.
+  if (isMedicalRole(profile.role)) redirect('/infirmerie');
 
   if (profile.role === 'COACH') {
     return <CoachDashboard supabase={supabase} firstName={profile.firstName} />;

@@ -25,10 +25,8 @@ function optional(formData: FormData, key: string): string | null {
  * n'acceptent l'écriture que du personnel de l'académie. Un coach qui
  * appellerait cette action verrait la base refuser, pas un `if` applicatif.
  *
- * Le dossier médical part dans `player_medical`, table séparée dont la
- * politique est plus stricte encore. S'il échoue alors que le joueur a été
- * créé, on le dit : mieux vaut un message gênant qu'une fiche médicale qu'on
- * croit enregistrée.
+ * Le dossier clinique n'est PAS écrit ici : il relève du personnel soignant,
+ * depuis l'infirmerie.
  */
 export async function savePlayer(
   _prev: PlayerFormState,
@@ -82,31 +80,11 @@ export async function savePlayer(
     savedId = data.id;
   }
 
-  const medicalNotes = optional(formData, 'medicalNotes');
-  const heightCm = optional(formData, 'heightCm');
-  const weightKg = optional(formData, 'weightKg');
-
-  if (savedId && (medicalNotes !== null || heightCm !== null || weightKg !== null)) {
-    const { error } = await supabase.from('player_medical').upsert(
-      {
-        player_id: savedId,
-        academy_id: profile.academyId,
-        medical_notes: medicalNotes,
-        height_cm: heightCm === null ? null : Number(heightCm),
-        weight_kg: weightKg === null ? null : Number(weightKg),
-        updated_by: profile.id,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'player_id' },
-    );
-    if (error) {
-      return {
-        error:
-          'La fiche a été enregistrée, mais PAS le dossier médical. ' +
-          'Rouvrez la fiche et ressaisissez-le.',
-      };
-    }
-  }
+  // Le dossier clinique ne s'écrit plus ici. Depuis la migration
+  // 20260919000004, il appartient au médecin et aux kinésithérapeutes, qui le
+  // saisissent depuis l'infirmerie. La base refuserait de toute façon cette
+  // écriture à un directeur — mais un formulaire qui propose un champ voué à
+  // l'échec est pire qu'un formulaire qui ne le propose pas.
 
   revalidatePath('/joueurs');
   redirect(`/joueurs/${savedId}`);

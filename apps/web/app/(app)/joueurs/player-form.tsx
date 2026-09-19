@@ -29,9 +29,6 @@ export interface PlayerFormValues {
   preferredPosition?: string;
   objectivesNote?: string;
   observations?: string;
-  medicalNotes?: string;
-  heightCm?: string;
-  weightKg?: string;
 }
 
 function Save({ isNew }: { isNew: boolean }) {
@@ -75,14 +72,13 @@ function Field({
   );
 }
 
-/** D6 — Créer ou modifier un joueur. Le bloc médical n'est rendu qu'à la direction. */
-export function PlayerForm({
-  values = {},
-  canEditMedical,
-}: {
-  values?: PlayerFormValues;
-  canEditMedical: boolean;
-}) {
+/**
+ * D6 — Créer ou modifier un joueur.
+ *
+ * Aucun champ médical : le dossier clinique appartient au personnel soignant
+ * et se saisit depuis l'infirmerie (migration 20260919000004).
+ */
+export function PlayerForm({ values = {} }: { values?: PlayerFormValues }) {
   const [state, action] = useActionState<PlayerFormState, FormData>(savePlayer, {});
   const errors = state.fieldErrors ?? [];
   const isNew = !values.id;
@@ -234,53 +230,6 @@ export function PlayerForm({
           </Field>
         </div>
       </Card>
-
-      {canEditMedical && (
-        <Card>
-          <SectionTitle>Dossier médical</SectionTitle>
-          <p className="mb-3 text-caption text-content-secondary">
-            Réservé à la direction. Ces informations sont enregistrées séparément de la fiche du
-            joueur, dans une table que les coachs et les familles ne peuvent pas lire.
-          </p>
-          <div className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field id="heightCm" label="Taille (cm)" errors={errors}>
-                <input
-                  id="heightCm"
-                  name="heightCm"
-                  type="number"
-                  min={80}
-                  max={230}
-                  defaultValue={values.heightCm}
-                  className={field}
-                />
-              </Field>
-              <Field id="weightKg" label="Poids (kg)" errors={errors}>
-                <input
-                  id="weightKg"
-                  name="weightKg"
-                  type="number"
-                  step="0.1"
-                  min={15}
-                  max={150}
-                  defaultValue={values.weightKg}
-                  className={field}
-                />
-              </Field>
-            </div>
-            <Field id="medicalNotes" label="Notes médicales" errors={errors}>
-              <textarea
-                id="medicalNotes"
-                name="medicalNotes"
-                rows={4}
-                defaultValue={values.medicalNotes}
-                placeholder="Allergies, traitements, antécédents…"
-                className={field}
-              />
-            </Field>
-          </div>
-        </Card>
-      )}
 
       <Save isNew={isNew} />
     </form>

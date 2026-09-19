@@ -127,6 +127,10 @@ const STAFF = [
   ['coach1', 'COACH', 'Aminata', 'Bakayoko', 'coach1@test.futuriste.fc'],
   ['coach2', 'COACH', 'Joseph', 'Ndiaye', 'coach2@test.futuriste.fc'],
   ['coach3', 'COACH', 'Fatou', 'Camara', 'coach3@test.futuriste.fc'],
+  // Personnel soignant : sans eux, aucun test ne peut prouver que la
+  // confidentialité médicale tient — ni dans un sens, ni dans l'autre.
+  ['doctor', 'CLUB_DOCTOR', 'Nadège', 'Ekwalla', 'medecin@test.futuriste.fc'],
+  ['physio', 'PHYSIOTHERAPIST', 'Cyrille', 'Manga', 'kine@test.futuriste.fc'],
 ];
 const PARENTS = [
   ['parentA', 'Moussa', 'Diallo', 'parenta@test.futuriste.fc'],
@@ -281,11 +285,20 @@ sql += `insert into player_guardians (id, player_id, guardian_id, relationship, 
 sql += `
 -- Données médicales de démonstration. Entièrement fictives : aucune donnée
 -- réelle d'enfant ne doit jamais entrer ici (docs/12, règle 2 de CLAUDE.md).
--- Elles vivent dans player_medical, hors de portée des coachs et des familles.
-insert into player_medical (player_id, academy_id, medical_notes, height_cm, weight_kg) values
+-- Elles vivent dans player_medical : le dossier CLINIQUE, réservé au médecin
+-- et aux kinés. Ni la direction, ni les coachs, ni les familles n'y accèdent.
+insert into player_medical (player_id, academy_id, clinical_notes, height_cm, weight_kg) values
   (${q(players[0].id)}, ${q(ACADEMY)}, 'Asthme léger — inhalateur dans le sac, à rappeler avant l''effort.', 131, 29),
   (${q(players[1].id)}, ${q(ACADEMY)}, 'Allergie aux arachides. Trousse d''urgence confiée au coach référent.', 134, 31),
   (${q(players[2].id)}, ${q(ACADEMY)}, 'Entorse cheville droite en mai. Reprise complète validée.', 129, 28);
+
+-- Aptitude et consignes de terrain. Volontairement SANS diagnostic : c'est
+-- tout l'intérêt de la table — le coach lit « reprise progressive », jamais le
+-- motif clinique qui se trouve, lui, dans player_medical.
+insert into player_health_clearance (player_id, academy_id, status, until, public_reason, emergency_instructions, emergency_contact) values
+  (${q(players[0].id)}, ${q(ACADEMY)}, 'ADAPTED', current_date + 21, 'Reprise progressive, éviter les efforts longs.', 'En cas de gêne respiratoire : arrêter, faire asseoir, inhalateur dans le sac. Appeler les secours si pas d''amélioration en 5 minutes.', '+237 6 00 00 00 01'),
+  (${q(players[1].id)}, ${q(ACADEMY)}, 'FIT', null, null, 'Allergie alimentaire : ne rien donner à manger. Trousse d''urgence au bord du terrain.', '+237 6 00 00 00 02'),
+  (${q(players[2].id)}, ${q(ACADEMY)}, 'UNFIT', current_date + 10, 'Indisponible, réévaluation prévue.', null, '+237 6 00 00 00 03');
 
 -- Une catégorie et une équipe dans l'AUTRE académie.
 -- Elles ne servent qu'aux tests de cloisonnement : sans cible appartenant à un

@@ -1,10 +1,17 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { FOOT_LABEL, GENDER_LABEL, PLAYER_STATUS_LABEL } from '@futuriste/core';
+import {
+  FOOT_LABEL,
+  GENDER_LABEL,
+  PLAYER_STATUS_LABEL,
+  canReadClinicalRecord,
+  isStaffRole,
+} from '@futuriste/core';
 import { Alert, Avatar, Card, SectionTitle } from '@/components/kit';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { requireSessionProfile } from '@/lib/supabase/session';
-import { playerDetail, playerMedical } from '@/lib/data/people';
+import { playerClearance, playerClinicalRecord, playerDetail } from '@/lib/data/people';
+import { ClearanceCard } from '@/components/medical/clearance-card';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,8 +46,15 @@ export default async function FicheJoueurPage({ params }: { params: Promise<{ id
   // distinction renseignerait sur l'existence d'un enfant.
   if (!player) notFound();
 
-  const isStaff = profile.role === 'SUPER_ADMIN' || profile.role === 'ACADEMY_DIRECTOR';
-  const medical = isStaff ? await playerMedical(supabase, id) : null;
+  const isStaff = isStaffRole(profile.role);
+  const isMedical = canReadClinicalRecord(profile.role);
+
+  // Les deux lectures sont lancées sans condition de rôle : RLS renvoie null à
+  // qui n'y a pas droit. Ce sont les politiques qui décident, pas ce fichier.
+  const [clinical, clearance] = await Promise.all([
+    playerClinicalRecord(supabase, id),
+    playerClearance(supabase, id),
+  ]);
 
   return (
     <div className="space-y-5">
@@ -107,39 +121,43 @@ export default async function FicheJoueurPage({ params }: { params: Promise<{ id
         </Card>
       )}
 
-      {isStaff ? (
+      <ClearanceCard clearance={clearance} />
+
+      {isMedical ? (
         <Card>
-          <SectionTitle>Dossier médical</SectionTitle>
-          {medical ? (
+          <SectionTitle>Dossier clinique</SectionTitle>
+          {clinical ? (
             <>
               <dl className="text-small">
                 <Line
                   label="Taille"
-                  value={medical.heightCm === null ? '—' : `${medical.heightCm} cm`}
+                  value={clinical.heightCm === null ? '—' : `${clinical.heightCm} cm`}
                 />
                 <Line
                   label="Poids"
-                  value={medical.weightKg === null ? '—' : `${medical.weightKg} kg`}
+                  value={clinical.weightKg === null ? '—' : `${clinical.weightKg} kg`}
                 />
               </dl>
-              {medical.medicalNotes && (
+              {clinical.clinicalNotes && (
                 <p className="mt-3 rounded-md bg-surface-raised p-3 text-small text-content-primary">
-                  {medical.medicalNotes}
+                  {clinical.clinicalNotes}
                 </p>
               )}
             </>
           ) : (
-            <p className="text-small text-content-secondary">Aucune information médicale.</p>
+            <p className="text-small text-content-secondary">Aucune note clinique.</p>
           )}
           <p className="mt-3 text-caption text-content-secondary">
-            Réservé à la direction. Les coachs, les parents et le joueur lui-même n&apos;y ont aucun
-            accès — c&apos;est la base de données qui le refuse, pas cet écran.
+            Secret médical. Ni la direction, ni les coachs, ni la famille n&apos;accèdent à cette
+            fiche — c&apos;est la base de données qui le refuse, pas cet écran. Chaque consultation
+            est tracée.
           </p>
         </Card>
       ) : (
         <Alert tone="good">
-          Le dossier médical de cet enfant n&apos;est accessible qu&apos;à la direction de
-          l&apos;académie. En cas de besoin pendant une séance, adressez-vous à elle.
+          {isStaff
+            ? "Le dossier clinique de cet enfant relève du médecin du club et des kinésithérapeutes. La direction n'y a pas accès : un diagnostic appartient au soignant et à la famille."
+            : "Le dossier clinique de cet enfant est couvert par le secret médical. Ce que vous devez savoir pour l'encadrer figure ci-dessus, dans l'aptitude."}
         </Alert>
       )}
 

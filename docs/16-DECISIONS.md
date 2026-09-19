@@ -136,6 +136,37 @@ C'est le principe déjà retenu pour le PLAYER DNA (docs/11).
 (`weightedAverage`, testée), sans quoi un joueur évalué une fois pèserait autant
 qu'un joueur évalué douze fois.
 
+
+### ADR-18 🟢 · Le dossier clinique appartient au soignant, pas à l'organigramme
+**Ce que nous faisons :** trois niveaux, trois tables.
+`player_medical` (diagnostics, traitements, taille, poids) → **médecin et
+kinésithérapeutes uniquement**. `player_health_clearance` (apte / aménagé /
+indisponible, jusqu'à quand, consigne d'urgence) → écrite par le soignant, lue
+par la direction, le coach de l'enfant et sa famille. Rien d'autre ne circule.
+**Pourquoi trois tables et non trois colonnes :** RLS défend des lignes, pas des
+colonnes. La leçon avait déjà coûté une faille (migration 20260919000001) : une
+vue « sûre » ne protège rien tant que la table reste lisible.
+**Conséquence assumée — la direction perd l'accès aux notes cliniques.** Un
+diagnostic appartient au soignant et à la famille. Et un coach qui connaît le
+diagnostic d'un enfant en parle, au vestiaire ou aux parents des autres : la
+séparation protège l'enfant de son propre club. La présidence conserve
+l'aptitude, la consigne d'urgence, et le fait qu'un dossier existe.
+**Réversible :** élargir `player_medical_select` est une ligne. Le contrôle de
+sécurité n°18 signalera le changement plutôt que de le laisser passer.
+
+### ADR-19 🟢 · Une instance par club, et non une base partagée entre clubs
+**Décision du président du club (19/09/2026) :** l'application vendue à d'autres
+centres de formation sera une application **similaire et catégoriquement
+séparée** — sa propre instance, sa propre base — et non un compte de plus dans
+la nôtre.
+**Ce que cela change :** le risque principal n'est plus la fuite entre clients,
+puisqu'il n'y a plus de voisin dans la base.
+**Ce que nous gardons quand même :** tout le cloisonnement par académie
+(ADR-08, migration 20260919000002). Il ne coûte rien à l'exécution, il protège
+le jour où deux académies d'un même groupe partageraient une instance, et il
+reste le meilleur garde-fou contre une requête mal écrite. Une sécurité qu'on
+retire parce qu'« elle ne sert plus » est une sécurité qu'on ne remettra pas.
+
 ---
 
 ## Les 3 décisions tranchées par le fondateur

@@ -8,7 +8,14 @@
  * Source : docs/06-ECRANS.md § « Navigation mobile selon le rôle ».
  */
 
-export type UserRole = 'SUPER_ADMIN' | 'ACADEMY_DIRECTOR' | 'COACH' | 'PLAYER' | 'PARENT';
+export type UserRole =
+  | 'SUPER_ADMIN'
+  | 'ACADEMY_DIRECTOR'
+  | 'COACH'
+  | 'PLAYER'
+  | 'PARENT'
+  | 'CLUB_DOCTOR'
+  | 'PHYSIOTHERAPIST';
 
 export interface NavigationEntry {
   /** Identifiant stable, indépendant du libellé et de l'URL. */
@@ -51,9 +58,27 @@ const STAFF_NAVIGATION: readonly NavigationEntry[] = [
   { key: 'gerer', labelFr: 'Gérer', href: '/parametres', icon: '⚙️', phase: 3 },
 ];
 
+/**
+ * Navigation du personnel soignant.
+ *
+ * Volontairement courte, et volontairement SANS « Séances », « Stats » ni
+ * « Progression » : un soignant n'a pas d'usage clinique des performances
+ * d'un enfant. Ce que la base lui refuse, l'interface ne le lui propose pas —
+ * sans quoi il verrait des menus menant à des pages vides, et croirait à une
+ * panne plutôt qu'à une règle.
+ */
+const MEDICAL_NAVIGATION: readonly NavigationEntry[] = [
+  ACCUEIL,
+  { key: 'infirmerie', labelFr: 'Infirmerie', href: '/infirmerie', icon: '🩺', phase: 4 },
+  { key: 'joueurs', labelFr: 'Joueurs', href: '/joueurs', icon: '👥', phase: 4 },
+  { key: 'profil', labelFr: 'Profil', href: '/compte', icon: '👤', phase: 3 },
+];
+
 const NAVIGATION_BY_ROLE: Record<UserRole, readonly NavigationEntry[]> = {
   SUPER_ADMIN: STAFF_NAVIGATION,
   ACADEMY_DIRECTOR: STAFF_NAVIGATION,
+  CLUB_DOCTOR: MEDICAL_NAVIGATION,
+  PHYSIOTHERAPIST: MEDICAL_NAVIGATION,
   COACH: [
     ACCUEIL,
     { key: 'seances', labelFr: 'Séances', href: '/seances', icon: '📋', phase: 6 },
@@ -99,4 +124,36 @@ export function activeEntryKey(role: UserRole, pathname: string): string | null 
     (entry) => pathname === entry.href || pathname.startsWith(`${entry.href}/`),
   );
   return match ? match.key : null;
+}
+
+/**
+ * Qui peut quoi — écrit UNE fois.
+ *
+ * Ces fonctions ne protègent rien : la protection est dans PostgreSQL. Elles
+ * évitent qu'un écran propose une action que la base refusera, et surtout
+ * qu'une comparaison de chaînes se retrouve recopiée dans dix pages, où la
+ * onzième oubliera un rôle.
+ */
+
+/** Direction : super administrateur et directeur d'académie. */
+export function isStaffRole(role: UserRole): boolean {
+  return role === 'SUPER_ADMIN' || role === 'ACADEMY_DIRECTOR';
+}
+
+/** Personnel soignant : médecin du club et kinésithérapeutes. */
+export function isMedicalRole(role: UserRole): boolean {
+  return role === 'CLUB_DOCTOR' || role === 'PHYSIOTHERAPIST';
+}
+
+/**
+ * Le dossier CLINIQUE n'est ouvert qu'aux soignants — direction comprise dans
+ * l'exclusion. Voir la migration 20260919000004 pour le raisonnement.
+ */
+export function canReadClinicalRecord(role: UserRole): boolean {
+  return isMedicalRole(role);
+}
+
+/** L'aptitude circule : direction, coach de l'enfant, parent, soignant. */
+export function canReadClearance(role: UserRole): boolean {
+  return isStaffRole(role) || isMedicalRole(role) || role === 'COACH' || role === 'PARENT';
 }
