@@ -30,7 +30,7 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 
 ```
 44 tables · 6 vues · 16 enums
-57 contrôles de sécurité RLS     (pnpm db:test)
+68 contrôles de sécurité RLS     (pnpm db:test)
 107 tests unitaires              (pnpm test)
 20 tâches turbo                  (lint typecheck test build)
 ```
@@ -53,7 +53,7 @@ Dans cet ordre. Aucune exception : un contrôle rouge bloque la livraison.
 pnpm install                                  # jamais npm — voir règle 7
 pnpm db:reset                                 # base locale + schéma + démo
 pnpm db:types                                 # types générés depuis la base
-pnpm db:test                                  # 57 contrôles de sécurité
+pnpm db:test                                  # 68 contrôles de sécurité
 pnpm turbo run lint typecheck test build      # 20 tâches
 pnpm format:check                             # ou pnpm format pour corriger
 ```
@@ -176,7 +176,7 @@ déploiement). `packages/core` porte `isMedicalRole`, `isStaffRole` et
 
 ## SÉCURITÉ — CE QUI EST DÉJÀ EN PLACE
 
-Cinq failles réelles ont été trouvées, **reproduites avant correction**, puis
+Six failles réelles ont été trouvées, **reproduites avant correction**, puis
 verrouillées par des tests vérifiés par sabotage :
 
 | Faille | Correctif |
@@ -186,6 +186,7 @@ verrouillées par des tests vérifiés par sabotage :
 | **N'importe quel compte pouvait forger une entrée du journal d'audit**, au nom du directeur, dans une autre académie | `…_harden_audit_logs.sql` |
 | **Un coach lisait les notes médicales d'un enfant** en interrogeant `players` directement — la vue « sûre » ne protégeait rien | `…_player_medical.sql` |
 | **15 politiques citaient `is_staff()` sans nommer l'académie** : un directeur écrivait chez un concurrent | `…_scope_staff_writes.sql` |
+| **N'importe qui pouvait changer son propre rôle** : `update profiles set role='CLUB_DOCTOR' where id = auth.uid()`, et les notes cliniques des 24 enfants s'ouvraient | `…_privilege_escalation.sql` |
 
 Méthode à reprendre pour toute faille : **reproduire d'abord**, corriger, ajouter
 un contrôle à `supabase/tests/run-rls-tests.sh`, puis **vérifier par sabotage**
@@ -195,6 +196,20 @@ protège rien.
 Côté application : `createSupabaseServerClient()` renvoie `null` quand la
 configuration manque, et le **type oblige** chaque appelant à traiter ce cas. La
 protection ne repose plus sur la mémoire de celui qui ajoute une page.
+
+Deux garde-fous transversaux, posés avec la sixième faille :
+
+- **Le rôle ne se modifie pas soi-même.** `role`, `academy_id` et `is_active`
+  sont gelés par le déclencheur `futuriste.guard_profile_privileges()`. Les
+  changer demande quelqu'un d'autre, de la direction, de la même académie ; le
+  rang de super administrateur ne se donne que par un super administrateur.
+  Une politique ne pouvait pas le faire : elle ne voit que la ligne d'arrivée,
+  jamais le changement.
+- **Un compte désactivé n'est plus personne.** `futuriste.me()` remplace
+  `auth.uid()` dans toutes les fonctions d'aide : `is_active = false` coupe
+  l'accès à la BASE, et non seulement aux écrans. Mesuré : sans cela, un coach
+  retiré du club lisait encore ses 10 joueurs pendant toute la durée de vie de
+  son jeton, parce que son droit venait de `team_coaches` et non de son rôle.
 
 ---
 
@@ -223,19 +238,78 @@ défaut — c'est le cas depuis la fusion de la PR #1.
 
 ## RESTE À FAIRE CÔTÉ FONDATEUR
 
-Dans `docs/17-MISE-EN-PRODUCTION.md`, par ordre d'urgence :
+Fait : schéma déployé (run #3 sur `fcd7381`), URL Configuration renseignée,
+inscriptions libres fermées.
 
-1. **Déployer le schéma** (procédure ci-dessus). Tant que ce n'est pas fait, la
-   base de production garde la politique d'audit falsifiable.
-2. **Supabase → URL Configuration** : Site URL
-   `https://futuriste-app-be-web.vercel.app` + les 4 Redirect URLs du point 4.
-   Sans elles, le lien de réinitialisation de mot de passe tombe dans le vide.
-3. **Fermer les inscriptions libres** (Authentication → Providers → Email).
-4. **Leaked password protection** + **Secure password change**.
-5. **Sauvegardes** (offre gratuite : 7 jours seulement).
+Reste, dans `docs/17-MISE-EN-PRODUCTION.md` :
 
-Aucun compte réel n'existe encore sur Supabase : les comptes de test
-(`directeur@test.futuriste.fc`, `coach1@…`) ne vivent qu'en base locale.
+1. **Redéployer le schéma** — la migration `20260919000005` ferme l'élévation
+   de privilèges. Tant qu'elle n'est pas appliquée, n'importe quel compte réel
+   peut se nommer médecin du club. À faire **avant** de créer les comptes.
+2. **Créer les premiers comptes réels** (section ci-dessous).
+3. **Leaked password protection** + longueur minimale 10 + **Secure password
+   change** (Authentication → Policies).
+4. **Sauvegardes** (offre gratuite : 7 jours seulement).
+
+---
+
+## CRÉER LES PREMIERS COMPTES RÉELS
+
+Les inscriptions libres sont fermées : **plus personne ne crée de compte depuis
+l'application**, pas même la présidence. C'est voulu — une académie de mineurs
+n'a pas de bouton « s'inscrire ». Les comptes se créent donc à la main, en
+trois temps.
+
+**Un compte Supabase n'est qu'une adresse et un mot de passe.** Il ne dit pas
+qui vous êtes dans le club. C'est la ligne `profiles` qui le dit, et sans elle
+la connexion réussit puis renvoie aussitôt vers `/connexion`, sans rien
+expliquer. D'où l'étape 3, qui n'est pas optionnelle.
+
+### 1 · Amorcer l'académie (une seule fois)
+
+Tableau de bord Supabase → **SQL Editor** → *New query* → coller le contenu de
+`supabase/bootstrap/01_academie_reelle.sql` → **Run**.
+
+Crée l'académie FUTURISTE et ses 7 catégories d'âge. Sans elles, aucune équipe
+ne peut être créée. Le fichier est **généré** depuis `packages/core/data` : il
+ne peut pas diverger du référentiel. Le relancer ne casse rien.
+
+### 2 · Créer les comptes
+
+Authentication → **Users** → *Add user* → *Create new user*, une fois par
+personne. Cocher **Auto Confirm User** (sans quoi le compte attend un courriel
+de confirmation).
+
+### 3 · Donner un rôle à chaque compte
+
+SQL Editor → coller `supabase/bootstrap/02_comptes.sql` **après y avoir
+remplacé les adresses d'exemple** par les vraies → **Run**. Le fichier affiche
+les lignes créées : trois lignes, trois rôles. S'il en manque une, l'adresse ne
+correspond à aucun compte.
+
+Ne commettez jamais les vraies adresses dans le dépôt : collez-les dans
+l'éditeur SQL, exécutez, laissez le fichier avec ses exemples.
+
+### Ce qu'on voit alors, et pourquoi c'est la bonne recette
+
+Le même enfant, regardé par trois comptes différents :
+
+| | Président (`SUPER_ADMIN`) | Médecin (`CLUB_DOCTOR`) | Coach (`COACH`) |
+|---|---|---|---|
+| Menu | Accueil, Joueurs, Séances, Stats, Gérer | Accueil, Infirmerie, Joueurs, Profil | Accueil, Séances, Joueurs, Progression, Profil |
+| Notes cliniques | ❌ | ✅ | ❌ |
+| Aptitude | ✅ lecture | ✅ écriture | ✅ ses joueurs |
+| Évaluations | ✅ | ❌ | ✅ ses joueurs |
+
+Si les trois voient la même chose, la sécurité est cassée — c'est le test de
+recette le plus rapide, et il ne demande qu'un téléphone.
+
+Au premier jour la base est vide : les écrans afficheront « aucun joueur »,
+« aucune séance ». C'est la règle d'honnêteté des écrans, pas une panne.
+
+**Un changement de rôle ne se fait jamais par l'intéressé** (garde-fou de la
+migration `20260919000005`). Le président nomme ses coachs et ses soignants ;
+son propre rôle, lui, ne se change que depuis l'éditeur SQL.
 
 ---
 
@@ -277,7 +351,7 @@ pnpm dev             site web en développement
 pnpm dev:mobile      application mobile (Expo)
 pnpm db:reset        base locale : schéma + données de démonstration
 pnpm db:types        régénérer packages/supabase/database.types.ts
-pnpm db:test         57 contrôles de sécurité RLS
+pnpm db:test         68 contrôles de sécurité RLS
 pnpm test            107 tests unitaires
 pnpm format          corriger le formatage
 ```

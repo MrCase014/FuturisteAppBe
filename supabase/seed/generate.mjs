@@ -71,6 +71,39 @@ sql +=
   ).join(',\n') + ';\n';
 writeFileSync(join(here, '01_academy_age_groups.sql'), sql);
 
+// ── Amorçage de la PRODUCTION ──────────────────────────────────────────────
+// Le seed ci-dessus ne part JAMAIS en production : il contient des personnes
+// fictives. Mais la base de production a tout de même besoin de son académie
+// et de ses sept catégories d'âge — sans elles, aucune équipe ne peut être
+// créée. Ce fichier-là, et lui seul, se colle dans l'éditeur SQL de Supabase.
+//
+// Il est généré ici, depuis le même tableau AGE_GROUPS, pour qu'il ne puisse
+// pas diverger du référentiel : une catégorie ajoutée dans le code se
+// retrouve dans l'amorçage sans que personne ait à y penser.
+//
+// `on conflict do nothing` : le relancer deux fois ne casse rien.
+let boot = `-- Amorçage de la base de PRODUCTION — à exécuter UNE fois.
+-- GÉNÉRÉ par supabase/seed/generate.mjs — ne pas éditer à la main.
+--
+-- Où : tableau de bord Supabase → SQL Editor → New query → coller → Run.
+-- Ce fichier ne contient AUCUNE donnée personnelle : seulement l'académie
+-- et ses catégories d'âge. Les comptes se créent ensuite (voir CLAUDE.md,
+-- « CRÉER LES PREMIERS COMPTES RÉELS »).
+
+insert into academies (id, name, slug, country, city) values
+  (${q(ACADEMY)}, 'FUTURISTE ACADÉMIE FC', 'futuriste', 'Cameroun', 'Yaoundé')
+on conflict (id) do nothing;
+
+insert into age_groups (id, academy_id, code, label_fr, min_age, max_age,
+  order_index, session_duration_min, sessions_per_week, complexity_level, objectives) values
+`;
+boot +=
+  AGE_GROUPS.map(
+    ([c, label, min, max, order, dur, freq, cx, focus]) =>
+      `  (${q(uuid('ag:' + c))}, ${q(ACADEMY)}, ${q(c)}, ${q(label)}, ${min}, ${max}, ${order}, ${dur}, ${freq}, ${cx}, ${q(focus)})`,
+  ).join(',\n') + '\non conflict (academy_id, code) do nothing;\n';
+writeFileSync(join(root, 'supabase/bootstrap/01_academie_reelle.sql'), boot);
+
 // ── 02 · Domaines, compétences, échelle 1-5 ────────────────────────────────
 const SLOT_COLORS = {
   1: '#2A78D6',
@@ -390,5 +423,5 @@ sql +=
 writeFileSync(join(here, '05_library.sql'), sql);
 
 console.log(
-  `seed généré — ${domains.length} domaines, ${compRows.length} compétences, ${players.length} joueurs, ${exercises.length} exercices, 5 fichiers.`,
+  `seed généré — ${domains.length} domaines, ${compRows.length} compétences, ${players.length} joueurs, ${exercises.length} exercices, 5 fichiers + amorçage production.`,
 );
