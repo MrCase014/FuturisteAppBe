@@ -55,6 +55,33 @@ export function supabaseProjectRef(): string {
   return match?.[1] ?? '';
 }
 
+/**
+ * De quelle FAMILLE est la clé publique posée — jamais sa valeur.
+ *
+ * Supabase migre ses clés : l'ancienne `anon` est un jeton JWT (« eyJ… »,
+ * plusieurs centaines de caractères), la nouvelle est une clé publiable
+ * (« sb_publishable_… », une cinquantaine). Les deux fonctionnent, et une
+ * longueur seule ne permet pas de les distinguer d'un copier-coller tronqué.
+ *
+ * Nommer la famille lève ce doute sans rien exposer : cette clé part déjà
+ * dans chaque page servie au navigateur.
+ *
+ * Le cas « secrète » n'est pas théorique. Une clé `sb_secret_…` posée dans
+ * une variable `NEXT_PUBLIC_…` serait livrée à tous les visiteurs, et
+ * donnerait à n'importe qui les droits d'administration de la base — RLS
+ * comprise. La page doit le crier, pas le mentionner.
+ */
+export type SupabaseKeyKind = 'absente' | 'jeton-jwt' | 'publiable' | 'SECRÈTE' | 'inconnue';
+
+export function supabaseKeyKind(): SupabaseKeyKind {
+  const key = supabaseAnonKey();
+  if (key.length === 0) return 'absente';
+  if (key.startsWith('sb_secret_')) return 'SECRÈTE';
+  if (key.startsWith('sb_publishable_')) return 'publiable';
+  if (key.startsWith('eyJ')) return 'jeton-jwt';
+  return 'inconnue';
+}
+
 /** D'où vient l'URL réellement utilisée — affiché par /diagnostic. */
 export function supabaseUrlSource(): 'variable' | 'repli' {
   const fromEnv = normalize(process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL ?? '');

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Alert, Card, SectionTitle } from '@/components/kit';
 import {
   supabaseAnonKey,
+  supabaseKeyKind,
   supabaseProjectRef,
   supabaseUrl,
   supabaseUrlSource,
@@ -25,6 +26,7 @@ export default function DiagnosticPage() {
   const url = supabaseUrl();
   const projectRef = supabaseProjectRef();
   const key = supabaseAnonKey();
+  const keyKind = supabaseKeyKind();
   const urlSource = supabaseUrlSource();
 
   const env = process.env.VERCEL_ENV ?? 'local';
@@ -53,9 +55,17 @@ export default function DiagnosticPage() {
           : `${url} · depuis le repli codé en dur (la variable est absente)`,
     },
     {
-      label: 'Clé anonyme',
-      ok: key.length > 0,
-      detail: key.length > 0 ? `présente · ${key.length} caractères` : 'absente',
+      label: 'Clé publique',
+      // Une clé secrète posée ici n'est pas « présente », c'est une fuite.
+      ok: key.length > 0 && keyKind !== 'SECRÈTE',
+      detail:
+        key.length === 0
+          ? 'absente'
+          : keyKind === 'SECRÈTE'
+            ? 'CLÉ SECRÈTE — à retirer immédiatement et à régénérer : elle est livrée à tous les visiteurs.'
+            : keyKind === 'inconnue'
+              ? `${key.length} caractères, format non reconnu — vérifiez qu'elle n'a pas été tronquée au copier-coller.`
+              : `${keyKind === 'publiable' ? 'clé publiable (sb_publishable_…)' : 'jeton JWT (eyJ…)'} · ${key.length} caractères`,
     },
   ];
 
