@@ -86,6 +86,16 @@ export function classifyAuthFailure(
     return context === 'EMAIL_LINK' ? 'MAIL_UNAVAILABLE' : 'UNAVAILABLE';
   }
 
+  // Tout le reste dépend du compte : adresse inconnue, adresse mal formée,
+  // requête refusée. Sur une CONNEXION, cela donne le message générique.
+  //
+  // Sur un envoi de courriel, cela ne donne RIEN. D'abord parce que l'écran
+  // ne demande pas de mot de passe : y afficher « mot de passe incorrect »
+  // n'a aucun sens. Ensuite et surtout parce que ce serait révéler qu'une
+  // adresse existe — exactement ce que la réponse neutre « si un compte
+  // existe pour cette adresse… » est là pour taire.
+  if (context === 'EMAIL_LINK') return null;
+
   return 'CREDENTIALS';
 }
 

@@ -31,7 +31,7 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 ```
 44 tables · 6 vues · 16 enums
 81 contrôles de sécurité RLS     (pnpm db:test)
-179 tests unitaires              (pnpm test)
+181 tests unitaires              (pnpm test)
 23 tâches turbo                  (lint typecheck test build)
 6 paquets                        core · diagrams · i18n · supabase · ui · web
 ```
@@ -415,6 +415,6 @@ pnpm dev:mobile      application mobile (Expo)
 pnpm db:reset        base locale : schéma + données de démonstration
 pnpm db:types        régénérer packages/supabase/database.types.ts
 pnpm db:test         81 contrôles de sécurité RLS
-pnpm test            179 tests unitaires
+pnpm test            181 tests unitaires
 pnpm format          corriger le formatage
 ```
