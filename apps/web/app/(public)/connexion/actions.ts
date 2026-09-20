@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { SUPABASE_UNAVAILABLE_MESSAGE } from '@/lib/supabase/config';
-import { safeRedirectPath } from '@futuriste/core';
+import { authErrorMessage, safeRedirectPath } from '@futuriste/core';
 
 export interface FormState {
   error?: string;
@@ -12,11 +12,14 @@ export interface FormState {
 }
 
 /**
- * Messages en français, et volontairement peu bavards : on ne révèle jamais
- * si une adresse existe dans la base. Ce serait un moyen de découvrir qui
- * fréquente l'académie.
+ * Les messages viennent de `authErrorMessage` (packages/core), qui porte le
+ * compromis : discret sur tout ce qui dépend du compte, explicite sur ce qui
+ * n'en dépend pas — une extinction du service, un quota, une panne.
+ *
+ * Avant, TOUTE erreur devenait « mot de passe incorrect ». Le jour où la
+ * connexion par mot de passe a été éteinte au niveau du projet, l'écran a
+ * donc accusé le mot de passe, et personne ne pouvait le deviner.
  */
-const GENERIC_ERROR = 'Adresse e-mail ou mot de passe incorrect.';
 
 export async function signInWithPassword(_prev: FormState, formData: FormData): Promise<FormState> {
   const email = String(formData.get('email') ?? '').trim();
@@ -31,7 +34,9 @@ export async function signInWithPassword(_prev: FormState, formData: FormData): 
   if (!supabase) return { error: SUPABASE_UNAVAILABLE_MESSAGE };
 
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { error: GENERIC_ERROR };
+  if (error) {
+    return { error: authErrorMessage(error, 'SIGN_IN') ?? undefined };
+  }
 
   redirect(suite);
 }
@@ -44,7 +49,7 @@ export async function sendMagicLink(_prev: FormState, formData: FormData): Promi
   const supabase = await createSupabaseServerClient();
   if (!supabase) return { error: SUPABASE_UNAVAILABLE_MESSAGE };
 
-  await supabase.auth.signInWithOtp({
+  const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
       emailRedirectTo: `${origin}/auth/callback`,
@@ -53,6 +58,11 @@ export async function sendMagicLink(_prev: FormState, formData: FormData): Promi
       shouldCreateUser: false,
     },
   });
+
+  // Une panne d'envoi ou un quota atteint ne dépendent d'aucune adresse : les
+  // taire enverrait attendre un courriel qui n'est jamais parti.
+  const failure = authErrorMessage(error, 'EMAIL_LINK');
+  if (failure) return { error: failure };
 
   // Réponse identique que le compte existe ou non.
   return {

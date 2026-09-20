@@ -49,7 +49,13 @@ const securityHeaders = [
 const nextConfig = {
   reactStrictMode: true,
   // Les packages partagés sont du TypeScript non compilé : Next les transpile.
-  transpilePackages: ['@futuriste/ui', '@futuriste/core', '@futuriste/i18n', '@futuriste/supabase'],
+  transpilePackages: [
+    '@futuriste/ui',
+    '@futuriste/core',
+    '@futuriste/i18n',
+    '@futuriste/supabase',
+    '@futuriste/diagrams',
+  ],
   // Ne pas annoncer la version du serveur : une information offerte à qui
   // cherche une faille connue.
   poweredByHeader: false,

@@ -361,6 +361,21 @@ check 23 "Un coach désactivé ne lit plus aucun joueur" "joueurs lus : 0" \
 check 23 "Un coach désactivé ne peut pas se réactiver lui-même" "1" \
   "$(echo "$retrait" | grep -c "Personne ne modifie son propre")"
 
+# 24 · SCHÉMAS TACTIQUES. Ils ne portent aucune donnée d'enfant — c'est du
+#      dessin au tableau — mais ils restent la propriété d'une académie :
+#      la bibliothèque d'un centre de formation est son travail, et c'est
+#      précisément ce qu'on vendra séparément aux autres centres.
+check 24 "Le coach lit les schémas de son académie" "3" \
+  "$(as_user "$COACH1" 'select count(*) from exercise_diagrams;')"
+check 24 "Le médecin aussi : un schéma n'est pas une donnée de santé" "3" \
+  "$(as_user "$DOCTOR" 'select count(*) from exercise_diagrams;')"
+check 24 "Une autre académie ne voit aucun schéma" "0" \
+  "$(as_user "$OUTSIDER" 'select count(*) from exercise_diagrams;')"
+check 24 "Un visiteur non authentifié non plus" "0" \
+  "$(as_user "" 'select count(*) from exercise_diagrams;')"
+check 24 "Un coach ne peut pas copier un schéma vers une autre académie" "0" \
+  "$(promotion "$COACH1" "update exercise_diagrams set academy_id='$OTHER_ACADEMY'")"
+
 # Invariant structurel : une politique ne compare jamais l'avant et l'après.
 # Le garde-fou qui le fait doit exister, et rester branché.
 check "R" "Le garde-fou d'élévation de privilèges est branché" "1" \
