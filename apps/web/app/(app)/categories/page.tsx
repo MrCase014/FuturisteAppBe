@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { Card, EmptyState, SectionTitle } from '@/components/kit';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -38,7 +39,12 @@ export default async function CategoriesPage() {
             <Card key={group.id}>
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <SectionTitle>
-                  {group.code} · {group.labelFr}
+                  <Link
+                    href={`/categories/${group.code.toLowerCase()}`}
+                    className="text-futuriste-violet underline"
+                  >
+                    {group.code} · {group.labelFr}
+                  </Link>
                 </SectionTitle>
                 <span className="text-caption text-content-secondary">
                   {group.minAge}–{group.maxAge} ans
@@ -69,8 +75,8 @@ export default async function CategoriesPage() {
       )}
 
       <p className="text-caption text-content-secondary">
-        L&apos;édition des contenus pédagogiques par catégorie arrive en phase 5, avec la
-        bibliothèque d&apos;exercices.
+        Ouvrez une catégorie pour lire sa méthodologie — priorités, format de jeu, évaluation. La
+        direction l&apos;y modifie directement.
       </p>
     </div>
   );

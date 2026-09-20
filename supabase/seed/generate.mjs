@@ -19,6 +19,9 @@ const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, '../..');
 
 const domains = JSON.parse(readFileSync(join(root, 'packages/core/data/domains.json'), 'utf8'));
+const methodology = JSON.parse(
+  readFileSync(join(root, 'packages/core/data/methodology.json'), 'utf8'),
+);
 
 /** UUID déterministe : le même seed produit toujours les mêmes identifiants. */
 const uuid = (seed) => {
@@ -59,6 +62,28 @@ const AGE_GROUPS = [
   ['U18', 'U18 · 17-18 ans', 17, 18, 7, 105, 5, 5, 'Le joueur autonome'],
 ];
 
+/**
+ * Les lignes `methodology` d'une académie (5.9).
+ *
+ * Fabriquées ici, et utilisées DEUX fois : pour les données de démonstration
+ * et pour l'amorçage de la production. C'est la même méthodologie dans les
+ * deux cas — seules les personnes sont fictives, jamais la pédagogie.
+ */
+const methodologyRows = (academyId) => {
+  const titles = Object.fromEntries(methodology.sections.map((s) => [s.key, s.titleFr]));
+  const rows = [];
+  for (const [code, sections] of Object.entries(methodology.byAgeGroup)) {
+    sections.forEach((section, index) => {
+      rows.push(
+        `  (${q(uuid('meth:' + code + ':' + section.key))}, ${q(academyId)},
+   ${q(uuid('ag:' + code))}, ${q(section.key)},
+   ${q(section.titleFr ?? titles[section.key])}, ${q(section.bodyFr)}, ${index})`,
+      );
+    });
+  }
+  return `insert into methodology (id, academy_id, age_group_id, section, title_fr, body_fr, order_index) values\n${rows.join(',\n')}`;
+};
+
 let sql = header('01 · Académie et catégories');
 sql += `\ninsert into academies (id, name, slug, country, city) values
   (${q(ACADEMY)}, 'FUTURISTE ACADÉMIE FC', 'futuriste', 'Cameroun', 'Yaoundé');\n\n`;
@@ -69,6 +94,7 @@ sql +=
     ([c, label, min, max, order, dur, freq, cx, focus]) =>
       `  (${q(uuid('ag:' + c))}, ${q(ACADEMY)}, ${q(c)}, ${q(label)}, ${min}, ${max}, ${order}, ${dur}, ${freq}, ${cx}, ${q(focus)})`,
   ).join(',\n') + ';\n';
+sql += `\n${methodologyRows(ACADEMY)};\n`;
 writeFileSync(join(here, '01_academy_age_groups.sql'), sql);
 
 // ── Amorçage de la PRODUCTION ──────────────────────────────────────────────
@@ -102,6 +128,9 @@ boot +=
     ([c, label, min, max, order, dur, freq, cx, focus]) =>
       `  (${q(uuid('ag:' + c))}, ${q(ACADEMY)}, ${q(c)}, ${q(label)}, ${min}, ${max}, ${order}, ${dur}, ${freq}, ${cx}, ${q(focus)})`,
   ).join(',\n') + '\non conflict (academy_id, code) do nothing;\n';
+boot += `\n-- La méthodologie FUTURISTE par catégorie (docs/11 §5). La direction la
+-- modifie ensuite depuis l'écran Catégories : ces lignes sont un point de
+-- départ, pas une vérité figée.\n${methodologyRows(ACADEMY)}\non conflict (id) do nothing;\n`;
 writeFileSync(join(root, 'supabase/bootstrap/01_academie_reelle.sql'), boot);
 
 // ── 02 · Domaines, compétences, échelle 1-5 ────────────────────────────────
@@ -447,5 +476,5 @@ sql +=
 writeFileSync(join(here, '05_library.sql'), sql);
 
 console.log(
-  `seed généré — ${domains.length} domaines, ${compRows.length} compétences, ${players.length} joueurs, ${exercises.length} exercices, ${diagrams.length} schémas, 5 fichiers + amorçage production.`,
+  `seed généré — ${domains.length} domaines, ${compRows.length} compétences, ${players.length} joueurs, ${exercises.length} exercices, ${diagrams.length} schémas, ${Object.values(methodology.byAgeGroup).flat().length} sections de méthodologie, 5 fichiers + amorçage production.`,
 );

@@ -1,4 +1,4 @@
-import { computeAge } from '@futuriste/core';
+import { computeAge, sortMethodologySections } from '@futuriste/core';
 import type { Enums } from '@futuriste/supabase';
 import type { SupabaseServerClient } from '@/lib/supabase/server';
 
@@ -392,4 +392,49 @@ export async function listCoaches(supabase: SupabaseServerClient): Promise<Coach
     isActive: coach.is_active,
     teamNames: teamsByCoach.get(coach.id) ?? [],
   }));
+}
+
+export interface MethodologySectionRow {
+  id: string;
+  key: string;
+  titleFr: string;
+  bodyFr: string;
+  updatedAt: string;
+}
+
+/**
+ * La méthodologie d'une catégorie (5.9).
+ *
+ * Le tri se fait par `packages/core`, pas par un `order by` SQL : l'ordre de
+ * lecture est une règle de méthodologie, pas un détail de stockage, et le
+ * mobile devra appliquer le même. `order_index` reste en base pour les
+ * sections qu'un directeur ajouterait lui-même.
+ */
+export async function methodologyForAgeGroup(
+  supabase: SupabaseServerClient,
+  ageGroupId: string,
+): Promise<MethodologySectionRow[]> {
+  const { data } = await supabase
+    .from('methodology')
+    .select('id, section, title_fr, body_fr, updated_at')
+    .eq('age_group_id', ageGroupId)
+    .order('order_index');
+
+  const rows = (data ?? []).map((row) => ({
+    id: row.id,
+    key: row.section,
+    titleFr: row.title_fr,
+    bodyFr: row.body_fr ?? '',
+    updatedAt: row.updated_at,
+  }));
+  return sortMethodologySections(rows);
+}
+
+/** Une catégorie par son code, pour l'écran de détail. */
+export async function ageGroupByCode(
+  supabase: SupabaseServerClient,
+  code: string,
+): Promise<AgeGroupRow | null> {
+  const groups = await listAgeGroups(supabase);
+  return groups.find((g) => g.code.toLowerCase() === code.toLowerCase()) ?? null;
 }

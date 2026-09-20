@@ -22,7 +22,7 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 | 3 | Tableaux de bord, navigation, paramètres | ✅ fusionnée (PR #4) |
 | 4 | Joueurs, équipes, catégories, coachs | ✅ fusionnée (PR #5) |
 | 4b | Personnel soignant et confidentialité médicale | ⏳ en revue (PR #6) |
-| 5 | Bibliothèque d'exercices | ⏳ en cours — 5.1, 5.2, 5.3, 5.5, 5.6, 5.8 livrés · reste 5.4 (vidéos), 5.7 (éditeur), 5.9 (CMS) |
+| 5 | Bibliothèque d'exercices | ⏳ en cours — 5.1, 5.2, 5.3, 5.5, 5.6, 5.8, 5.9 livrés · reste 5.4 (vidéos), 5.7 (éditeur de schémas) |
 
 `main` contient tout. Les branches de phase fusionnées ne servent plus.
 
@@ -30,14 +30,15 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 
 ```
 44 tables · 6 vues · 16 enums
-73 contrôles de sécurité RLS     (pnpm db:test)
-154 tests unitaires              (pnpm test)
+81 contrôles de sécurité RLS     (pnpm db:test)
+179 tests unitaires              (pnpm test)
 23 tâches turbo                  (lint typecheck test build)
 6 paquets                        core · diagrams · i18n · supabase · ui · web
 ```
 
 Jeu de démonstration : 2 académies, 20 joueurs, 3 coachs, 3 équipes (dont 1 chez un concurrent, pour les tests de cloisonnement),
-7 catégories, 4 évaluations, 3 objectifs, 20 exercices, 3 schémas tactiques, 1 médecin, 1 kiné. **0 séance, 0 présence** — normal,
+7 catégories, 4 évaluations, 3 objectifs, 20 exercices, 3 schémas tactiques,
+20 sections de méthodologie, 1 médecin, 1 kiné. **0 séance, 0 présence** — normal,
 la prise de présence arrive en phase 7.
 
 Sous RLS, le directeur voit **20 joueurs / 2 équipes**, le coach 1 en voit
@@ -54,7 +55,7 @@ Dans cet ordre. Aucune exception : un contrôle rouge bloque la livraison.
 pnpm install                                  # jamais npm — voir règle 7
 pnpm db:reset                                 # base locale + schéma + démo
 pnpm db:types                                 # types générés depuis la base
-pnpm db:test                                  # 73 contrôles de sécurité
+pnpm db:test                                  # 81 contrôles de sécurité
 pnpm turbo run lint typecheck test build      # 23 tâches
 pnpm format:check                             # ou pnpm format pour corriger
 ```
@@ -172,6 +173,34 @@ Pour ajouter un rôle : l'énumération `user_role` se modifie dans une migratio
 ajoutée dans la même transaction — cela passe en local et échoue au
 déploiement). `packages/core` porte `isMedicalRole`, `isStaffRole` et
 `canReadClinicalRecord` : ces tests de rôle s'écrivent une seule fois.
+
+---
+
+## MÉTHODOLOGIE PAR CATÉGORIE — QUI ÉCRIT, QUI APPLIQUE
+
+`/categories/<code>` porte le texte que tous les coachs lisent avant leur
+séance : priorités, format de jeu, évaluation, point de repère, interdits.
+La direction le corrige **sur le même écran** — une page d'administration
+séparée finit toujours par produire deux textes qui ne disent plus la même
+chose.
+
+**La distinction à ne jamais perdre de vue :** ce texte ne décide de rien.
+« Aucune note en U7 » y est une consigne pour les coachs ; la règle, elle,
+est appliquée par `packages/core/src/methodology/reliability.ts` et vérifiée
+par des tests. Si elle ne tenait qu'à ce texte, il suffirait de le réécrire
+pour afficher des notes à des enfants de six ans.
+
+Contenu livré : `packages/core/data/methodology.json`, repris de docs/11 §5.
+Il alimente **et** le jeu de démonstration **et** l'amorçage de la
+production — la pédagogie est la même dans les deux, seules les personnes
+sont fictives. Les mêmes contrôles (`methodologyProblems`) valident le
+contenu livré et les modifications de la direction : deux poids, deux
+mesures serait la porte ouverte à un texte de 4 000 caractères que personne
+ne lit.
+
+Une section portant une clé inconnue — ajoutée à la main en base — se range
+à la fin plutôt que de disparaître. On ne perd jamais le travail de
+quelqu'un parce qu'on n'avait pas anticipé son besoin.
 
 ---
 
@@ -385,7 +414,7 @@ pnpm dev             site web en développement
 pnpm dev:mobile      application mobile (Expo)
 pnpm db:reset        base locale : schéma + données de démonstration
 pnpm db:types        régénérer packages/supabase/database.types.ts
-pnpm db:test         73 contrôles de sécurité RLS
-pnpm test            154 tests unitaires
+pnpm db:test         81 contrôles de sécurité RLS
+pnpm test            179 tests unitaires
 pnpm format          corriger le formatage
 ```
