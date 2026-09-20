@@ -40,6 +40,21 @@ export function supabaseUrl(): string {
   return fromEnv || FALLBACK_SUPABASE_URL;
 }
 
+/**
+ * La référence du projet Supabase : le sous-domaine de son URL.
+ *
+ * C'est la chaîne courte qui apparaît aussi dans l'adresse du tableau de
+ * bord (`/project/<ref>`). La comparer à l'œil sur un téléphone est
+ * autrement plus simple que de comparer deux URL complètes — et c'est
+ * exactement la vérification qui sépare « la configuration est mauvaise » de
+ * « l'application parle à un autre projet ».
+ */
+export function supabaseProjectRef(): string {
+  const url = supabaseUrl();
+  const match = /^https?:\/\/([^.]+)\./.exec(url);
+  return match?.[1] ?? '';
+}
+
 /** D'où vient l'URL réellement utilisée — affiché par /diagnostic. */
 export function supabaseUrlSource(): 'variable' | 'repli' {
   const fromEnv = normalize(process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL ?? '');
