@@ -157,14 +157,14 @@ Le coach appuie sur ▶️ et **voit** le principe. Il n'a rien à lire.
 - **Fonctionne hors ligne** (le JSON est en cache)
 - Génère un PNG d'aperçu pour les listes
 
-### L'éditeur (Phase 5.7, ~10 jours) 🔴
+### L'éditeur (Phase 5.7) ✅ livré
 
-**Version 1 volontairement limitée** — c'est la décision qui évite de perdre
+**Version 1 volontairement limitée** — c'est la décision qui a évité de perdre
 trois semaines :
 
 ```
 ✅ Dans la v1                      ⏳ Reporté en V2
-   Poser des éléments                 Annuler/refaire illimité
+   Poser des éléments                 Annuler/refaire illimité (20 pas livrés)
    Déplacer (glisser-déposer)         Travail à plusieurs
    Tracer une flèche                  Courbes de Bézier
    Dessiner une zone                  Bibliothèque de modèles
@@ -173,9 +173,70 @@ trois semaines :
    Dupliquer un schéma                Symétrie automatique
 ```
 
-**Garde-fou de calendrier :** si l'éditeur dépasse **12 jours**, on l'arrête,
-on livre le lecteur seul, et on saisit les schémas en JSON pour le MVP.
-Le produit reste utilisable. Le calendrier, lui, ne se rattrape pas.
+Le garde-fou de calendrier (12 jours, ADR-14) n'a pas eu à jouer.
+
+#### Où vit quoi
+
+| Morceau | Fichier | Pourquoi là |
+|---|---|---|
+| Le moteur | `packages/diagrams/src/editor.ts` | Pur, sans React : c'est ce qui le rend vérifiable |
+| La géométrie | `packages/diagrams/src/geometry.ts` | Le lecteur et l'éditeur projettent le terrain avec les **mêmes** nombres |
+| L'écran | `apps/web/components/diagrams/diagram-editor.tsx` | Ne décide de rien : traduit un doigt en action |
+| Le dessin | `apps/web/components/diagrams/field.tsx` | **Le même composant que le lecteur** — ce qu'on déplace est ce qu'on verra |
+
+#### L'invariant, et pourquoi il vaut plus que les exemples
+
+> Quelle que soit la suite de gestes reçue, le schéma produit reste un fichier
+> que `parseDiagram()` accepte.
+
+Un éditeur qui produit un fichier que le lecteur refuse fait perdre au coach le
+travail qu'il vient de faire — et il ne s'en aperçoit qu'à la relecture, au
+bord du terrain. Aucun test d'exemple ne couvre l'espace des gestes possibles :
+on en joue donc **12 000 tirés au sort**, avec un générateur reproductible pour
+qu'un échec se rejoue à l'identique. Quatre sabotages ont confirmé que ces
+tests tombent bien quand on retire une protection.
+
+Conséquence sur la conception : le moteur **borne et refuse**, il ne « corrige
+jamais plus tard ». Et un refus n'est pas silencieux — il remplit un message
+que l'écran affiche. Un éditeur qui ignore un geste sans rien dire passe pour
+cassé.
+
+#### Trois choix dictés par le pouce, pas par l'écran
+
+1. **Une flèche se trace en TOUCHANT ses points**, pas en glissant. Un
+   glissement de trois segments se rate une fois sur deux sur un écran
+   tactile ; une suite de touchers, jamais.
+2. **`touch-action: none` sur le terrain.** Sans cela, traîner un joueur fait
+   défiler la page, et l'éditeur est inutilisable sur téléphone.
+3. **Capture du pointeur.** Un doigt qui sort du cadre continue de déplacer son
+   joueur, au lieu de le lâcher à mi-chemin.
+
+#### Deux règles que le format impose, et que l'écran explique
+
+- **Sur une image-clé, on ne pose ni ne supprime rien** : on déplace ce qui
+  existe. Un élément ajouté à l'image 2 n'existerait pas à l'image 1, et le
+  format ne sait pas faire apparaître quelqu'un en cours d'animation.
+- **Une flèche, une zone, un but et un texte ne se déplacent pas d'une image à
+  l'autre** : ils sont dessinés une fois pour tout le schéma. Une position
+  écrite pour eux serait refusée à la relecture.
+
+Dans les deux cas l'éditeur le DIT, plutôt que d'ignorer le geste.
+
+#### Qui peut modifier quoi
+
+RLS n'autorise la modification qu'à **l'auteur du schéma ou à la direction**.
+L'écran le dit **avant** le premier trait : ouvrir le schéma d'un collègue
+affiche « Partir de ce schéma », et l'enregistrement crée *votre version* sans
+toucher à l'originale. Rien n'est plus décourageant que de dessiner dix minutes
+avant d'apprendre qu'on n'avait pas le droit.
+
+#### Ce qui part en base
+
+Le canevas est **relu par `parseDiagram()` côté serveur**, puis **recopié champ
+par champ** (`canonicalDiagram`). RLS filtre des lignes, il ne regarde pas ce
+qu'il y a dans une colonne `jsonb` : sans cette recopie, n'importe quelle
+donnée envoyée par un navigateur entrerait en base à côté des joueurs, et y
+resterait.
 
 ---
 

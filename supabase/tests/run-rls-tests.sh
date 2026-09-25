@@ -376,6 +376,54 @@ check 24 "Un visiteur non authentifié non plus" "0" \
 check 24 "Un coach ne peut pas copier un schéma vers une autre académie" "0" \
   "$(promotion "$COACH1" "update exercise_diagrams set academy_id='$OTHER_ACADEMY'")"
 
+# 26 · ÉCRITURE DES SCHÉMAS (5.7, l'éditeur). Jusqu'ici les schémas n'étaient
+#      que LUS ; un éditeur ouvre un chemin d'écriture, et c'est ce chemin
+#      qu'il faut mesurer.
+#
+#      ATTENTION à la différence, qui a déjà piégé ce projet : un INSERT
+#      refusé par RLS LÈVE une erreur, un UPDATE refusé n'en lève AUCUNE — il
+#      touche zéro ligne, en silence. Les deux aides ci-dessous rendent donc
+#      un NOMBRE DE LIGNES dans les deux cas, seule mesure qui ne ment pas.
+ecriture() { # $1 = acteur ; $2 = INSERT sans point-virgule final
+  as_user "$1" "with i as ($2 returning 1) select count(*) from i;" \
+    | grep -Eo '^[0-9]+$' || echo 0
+}
+DIAGRAM_EXERCISE=$("${PSQL[@]}" -c "select exercise_id from exercise_diagrams limit 1;")
+CANVAS='{"version":1,"field":{"kind":"CUSTOM","lengthM":20,"widthM":20,"orientation":"HORIZONTAL"},"elements":[{"id":"a1","kind":"PLAYER","team":"A","x":10,"y":10}],"keyframes":[]}'
+
+check 26 "Un coach dessine un schéma dans SON académie" "1" \
+  "$(ecriture "$COACH1" "insert into exercise_diagrams (academy_id, exercise_id, canvas, created_by)
+     select academy_id, '$DIAGRAM_EXERCISE', '$CANVAS'::jsonb, '$COACH1' from profiles where id='$COACH1'")"
+check 26 "Un coach ne dessine pas dans l'académie voisine" "0" \
+  "$(ecriture "$COACH1" "insert into exercise_diagrams (academy_id, exercise_id, canvas, created_by)
+     values ('$OTHER_ACADEMY', '$DIAGRAM_EXERCISE', '$CANVAS'::jsonb, '$COACH1')")"
+check 26 "Un parent ne dessine pas de schéma" "0" \
+  "$(ecriture "$PARENT_A" "insert into exercise_diagrams (academy_id, exercise_id, canvas, created_by)
+     select academy_id, '$DIAGRAM_EXERCISE', '$CANVAS'::jsonb, '$PARENT_A' from profiles where id='$PARENT_A'")"
+check 26 "Un joueur non plus" "0" \
+  "$(ecriture "$PLAYER" "insert into exercise_diagrams (academy_id, exercise_id, canvas, created_by)
+     select academy_id, '$DIAGRAM_EXERCISE', '$CANVAS'::jsonb, '$PLAYER' from profiles where id='$PLAYER'")"
+check 26 "Le médecin non plus : lire un schéma n'est pas le réécrire" "0" \
+  "$(ecriture "$DOCTOR" "insert into exercise_diagrams (academy_id, exercise_id, canvas, created_by)
+     select academy_id, '$DIAGRAM_EXERCISE', '$CANVAS'::jsonb, '$DOCTOR' from profiles where id='$DOCTOR'")"
+check 26 "Un coach ne remplace pas le schéma d'un autre" "0" \
+  "$(promotion "$COACH1" "update exercise_diagrams set title='réécrit par le coach'")"
+check 26 "La direction, elle, corrige les schémas de son académie" "3" \
+  "$(promotion "$DIRECTOR" "update exercise_diagrams set title='corrigé par la direction'")"
+# Deux instructions, et non une seule avec deux CTE : dans PostgreSQL, toutes
+# les CTE d'une même instruction voient le MÊME instantané, donc un UPDATE n'y
+# verrait pas la ligne que l'INSERT voisin vient d'écrire. Le contrôle aurait
+# alors mesuré cette règle du moteur, et non le droit du coach.
+check 26 "Le coach modifie bien CELUI QU'IL VIENT de dessiner" "1" \
+  "$(as_user "$COACH1" "insert into exercise_diagrams (academy_id, exercise_id, canvas, created_by)
+     select academy_id, '$DIAGRAM_EXERCISE', '$CANVAS'::jsonb, '$COACH1' from profiles where id='$COACH1';
+     with u as (update exercise_diagrams set title='ma correction'
+                where created_by='$COACH1' returning 1)
+     select count(*) from u;")"
+check 26 "Un visiteur non authentifié n'écrit rien" "0" \
+  "$(ecriture "" "insert into exercise_diagrams (academy_id, exercise_id, canvas)
+     values ('$OTHER_ACADEMY', '$DIAGRAM_EXERCISE', '$CANVAS'::jsonb)")"
+
 # 25 · MÉTHODOLOGIE PAR CATÉGORIE (5.9). Le texte que tous les coachs lisent
 #      avant leur séance. Il doit être LU par tous, et ÉCRIT par la seule
 #      direction : une consigne que chacun peut réécrire n'est plus une

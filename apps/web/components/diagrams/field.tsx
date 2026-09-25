@@ -1,3 +1,4 @@
+import type { PointerEvent as ReactPointerEvent, ReactNode, Ref } from 'react';
 import type { DiagramCanvas, DiagramElement, Point } from '@futuriste/diagrams';
 import {
   BALL_RADIUS,
@@ -7,6 +8,7 @@ import {
   PLAYER_RADIUS,
   TEAM_STYLES,
   ZONE_STYLES,
+  fieldGeometry,
 } from '@futuriste/diagrams';
 
 /**
@@ -299,8 +301,19 @@ function Figure({ element, at }: { element: DiagramElement; at: Point }) {
       );
     }
     case 'TEXT':
+      // `dominantBaseline` n'est pas une coquetterie : sans lui, le texte
+      // s'écrit AU-DESSUS de son point, alors que c'est sur ce point qu'on
+      // l'attrape. On touchait donc à côté de ce qu'on voyait.
       return (
-        <text x={at.x} y={at.y} textAnchor="middle" fontSize={3} fill={FIGURE_COLORS.text}>
+        <text
+          x={at.x}
+          y={at.y}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fontSize={4.2}
+          fontWeight={600}
+          fill={FIGURE_COLORS.text}
+        >
           {element.text}
         </text>
       );
@@ -313,15 +326,35 @@ export function DiagramField({
   diagram,
   positions,
   altText,
+  svgRef,
+  overlay,
+  onPointerDown,
+  onPointerMove,
+  onPointerUp,
+  className = 'w-full rounded-md',
 }: {
   diagram: DiagramCanvas;
   positions: Map<string, Point>;
   altText: string;
+  /**
+   * Les quatre accessoires suivants ne servent qu'à l'ÉDITEUR (phase 5.7). Le
+   * lecteur ne les passe pas, et se comporte exactement comme avant.
+   *
+   * Pourquoi l'éditeur réutilise ce composant plutôt que d'avoir le sien : ce
+   * que le coach déplace doit être, au pixel près, ce qu'il verra à la
+   * lecture. Deux dessins séparés finiraient par diverger, et l'écart ne se
+   * verrait qu'une fois le schéma publié.
+   */
+  svgRef?: Ref<SVGSVGElement>;
+  overlay?: ReactNode;
+  onPointerDown?: (event: ReactPointerEvent<SVGSVGElement>) => void;
+  onPointerMove?: (event: ReactPointerEvent<SVGSVGElement>) => void;
+  onPointerUp?: (event: ReactPointerEvent<SVGSVGElement>) => void;
+  className?: string;
 }) {
-  const { lengthM, widthM } = diagram.field;
-  // Hauteur du repère : ce qui garde les proportions réelles du terrain.
-  const height = Math.max(30, Math.min(160, (widthM / lengthM) * 100));
-  const scaleY = height / 100;
+  // La géométrie vient du paquet : l'éditeur convertit les doigts en
+  // coordonnées avec EXACTEMENT les mêmes nombres (packages/diagrams/geometry).
+  const { height, scaleY, viewBox } = fieldGeometry(diagram.field);
 
   const at = (element: DiagramElement): Point => {
     if (!('x' in element)) return { x: 0, y: 0 };
@@ -339,10 +372,15 @@ export function DiagramField({
 
   return (
     <svg
-      viewBox={`-2 -2 104 ${height + 4}`}
-      className="w-full rounded-md"
+      ref={svgRef}
+      viewBox={viewBox}
+      className={className}
       role="img"
       aria-label={altText}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
     >
       <defs>
         <pattern
@@ -407,6 +445,7 @@ export function DiagramField({
           <Figure key={element.id} element={element} at={at(element)} />
         ))}
       </g>
+      {overlay}
     </svg>
   );
 }

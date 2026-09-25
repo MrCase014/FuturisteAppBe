@@ -15,8 +15,8 @@ propriété de **FUTURISTE ACADÉMIE FC**.
 | | |
 |---|---|
 | **Architecture** | ✅ validée par le fondateur le 16/09/2026 |
-| **Phases livrées** | 1 · 2 · 2b · 3 · 4 · 4b · 5 (sauf 5.4 et 5.7) |
-| **Phase en cours** | PHASE 5 — reste les vidéos (5.4) et l'éditeur de schémas (5.7) |
+| **Phases livrées** | 1 · 2 · 2b · 3 · 4 · 4b · 5 (sauf 5.4) |
+| **Phase en cours** | PHASE 5 — reste l'envoi de vidéos (5.4), qui attend l'espace de stockage Supabase |
 | **Langue MVP** | Français (anglais préparé dès le départ) |
 | **Installation** | Application web installable sur téléphone (PWA) — voir [`conf.md`](conf.md) |
 
@@ -24,8 +24,8 @@ propriété de **FUTURISTE ACADÉMIE FC**.
 
 ```
 44 tables · 6 vues · 16 enums
-81 contrôles de sécurité RLS
-181 tests unitaires
+90 contrôles de sécurité RLS
+241 tests unitaires
 6 paquets : core · diagrams · i18n · ui · supabase · web
 ```
 
@@ -53,8 +53,8 @@ pnpm build       # compile le web et prépare le mobile
 pnpm --filter @futuriste/ui tokens   # régénère theme.css après un changement de palette
 
 # Base de données (sans Docker)
-pnpm db:reset          # crée la base, applique les 18 migrations, charge la démo
-pnpm db:test           # 🔒 joue les 12 tests de sécurité
+pnpm db:reset          # crée la base, applique les 25 migrations, charge la démo
+pnpm db:test           # 🔒 joue les 12 tests de sécurité (90 contrôles)
 pnpm db:types          # régénère les types TypeScript depuis le schéma
 pnpm db:seed:generate  # régénère le seed depuis packages/core
 ```
@@ -92,14 +92,14 @@ Ce que vous voyez est ce qui sera codé.
 
 | Livrable | État | Vérification |
 |---|:---:|---|
-| 42 tables, 15 types énumérés | ✅ | `pnpm db:reset` |
-| Fonctions d'aide à la sécurité | ✅ | 11 fonctions dans le schéma `futuriste` |
-| **85 politiques RLS** | ✅ | aucune table sans RLS, aucune sans politique |
+| 44 tables, 16 types énumérés | ✅ | `pnpm db:reset` |
+| Fonctions d'aide à la sécurité | ✅ | 24 fonctions dans le schéma `futuriste` |
+| **91 politiques RLS** | ✅ | aucune table sans RLS, aucune sans politique |
 | Privilèges explicites | ✅ | `anon` ne lit rien, `authenticated` ne supprime rien |
 | 6 vues de tableau de bord | ✅ | calcul dans la base, pas dans le téléphone |
 | Données de démonstration fictives | ✅ | générées depuis `packages/core` |
-| Types TypeScript | ✅ | 1 900 lignes générées depuis le schéma |
-| **🔒 Les 12 tests de sécurité** | ✅ | **18 contrôles au vert** |
+| Types TypeScript | ✅ | 2 800 lignes générées depuis le schéma |
+| **🔒 Les 12 tests de sécurité** | ✅ | **90 contrôles au vert** |
 
 ### Phase 2b — Authentification
 

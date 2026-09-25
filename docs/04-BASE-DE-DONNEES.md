@@ -3,11 +3,12 @@
 > **Le document le plus important du projet.** Un écran se refait en 2 jours.
 > Un schéma mal conçu se paie pendant 3 ans.
 
-**42 tables, réparties en 11 domaines fonctionnels.**
+**44 tables, réparties en 12 domaines fonctionnels.**
 
-> ✅ **Appliqué et vérifié en Phase 2** : 18 migrations, 85 politiques RLS,
-> 6 vues, 15 types énumérés. Les 12 tests de sécurité passent
-> (`pnpm db:test`). Le schéma décrit ci-dessous est celui qui tourne.
+> ✅ **Appliqué et vérifié** : 25 migrations, 91 politiques RLS, 6 vues,
+> 16 types énumérés, 24 fonctions de sécurité. Les 12 tests de sécurité
+> passent — 90 contrôles (`pnpm db:test`). Le schéma décrit ci-dessous est
+> celui qui tourne.
 
 ---
 
@@ -842,7 +843,7 @@ from academies ac;
 
 ---
 
-## 13. Inventaire complet — 42 tables
+## 13. Inventaire complet — 44 tables
 
 | # | Table | Domaine | Écrite par |
 |---|---|---|---|
@@ -888,6 +889,8 @@ from academies ac;
 | 40 | `ai_requests` | IA (Phase 12) | Système |
 | 41 | `video_analysis_jobs` | Vision (Phase 13) | Système |
 | 42 | `sync_conflicts` | Hors ligne | Système |
+| 43 | `player_medical` | Médical | Médecin / kiné |
+| 44 | `player_health_clearance` | Médical | Médecin |
 
 ---
 

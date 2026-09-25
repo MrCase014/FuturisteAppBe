@@ -387,8 +387,47 @@ order by u.created_at;
 ### « Aucun courriel n'arrive »
 
 Suivez [5.6](#56--vérifier). Les journaux de Brevo sont la seule source de
-vérité : l'application, elle, reste volontairement discrète sur l'existence des
-comptes.
+vérité côté envoi : l'application, elle, reste volontairement discrète sur
+l'existence des comptes.
+
+**Si Brevo n'affiche RIEN et que Supabase affiche une erreur d'envoi**, la
+panne est entre les deux : Supabase a essayé, la connexion au serveur d'envoi a
+échoué, et Brevo n'a donc rien eu à enregistrer. Dans ce cas, le journal qui
+répond est précis :
+
+> Supabase → **Logs** → **Auth Logs**.
+>
+> Et non « Postgres Logs », qui ne parle que de la base de données : on y lit
+> des lignes comme `checkpoint complete`, qui décrivent son fonctionnement
+> interne et ne disent **rien** des courriels.
+
+Cherchez-y la ligne portant `/recover` ou `/magiclink` et lisez son message.
+Les quatre causes, par ordre de fréquence :
+
+| Message | Ce qu'il faut corriger |
+|---|---|
+| `535` / authentification refusée | Le mot de passe SMTP n'est pas la clé SMTP — une clé **API** ne marche pas ici ([5.3](#53--générer-la-clé-smtp)) |
+| `550` / expéditeur refusé | L'adresse d'expéditeur n'est pas validée chez Brevo ([5.2](#52--valider-ladresse-dexpéditeur)) |
+| `timeout` / connexion refusée | Hôte ou port erronés : `smtp-relay.brevo.com`, port `587` ([5.4](#54--brancher-supabase)) |
+| `rate limit` | La limite d'envoi est restée à 0 ([5.5](#55--relever-la-limite-denvoi)) |
+
+> Le **nom d'utilisateur** SMTP est votre **identifiant de connexion Brevo**
+> (celui affiché dans SMTP & API → SMTP), et **non** `smtp-relay.brevo.com`.
+> C'est la confusion la plus fréquente, et elle produit exactement ce
+> symptôme : rien chez Brevo, une erreur chez Supabase.
+
+### « Je veux essayer sans compte »
+
+Trois pages sont publiques et font tourner le vrai code, depuis votre
+téléphone :
+
+| Adresse | Ce qu'elle montre |
+|---|---|
+| `/maquettes` | Les écrans clés de l'application |
+| `/maquettes/schemas-tactiques` | Les schémas animés, tels que les coachs les verront |
+| `/maquettes/editeur-schemas` | L'éditeur : posez des joueurs au doigt, animez-les, regardez l'aperçu |
+
+Rien n'y est enregistré, et aucune donnée d'enfant n'y figure.
 
 ### « Les écrans sont vides »
 

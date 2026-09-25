@@ -22,7 +22,7 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 | 3 | Tableaux de bord, navigation, paramètres | ✅ fusionnée (PR #4) |
 | 4 | Joueurs, équipes, catégories, coachs | ✅ fusionnée (PR #5) |
 | 4b | Personnel soignant et confidentialité médicale | ⏳ en revue (PR #6) |
-| 5 | Bibliothèque d'exercices | ⏳ en cours — 5.1, 5.2, 5.3, 5.5, 5.6, 5.8, 5.9 livrés · reste 5.4 (vidéos), 5.7 (éditeur de schémas) |
+| 5 | Bibliothèque d'exercices | ⏳ en cours — 5.1, 5.2, 5.3, 5.5, 5.6, 5.7, 5.8, 5.9 livrés · reste 5.4 (vidéos), qui attend l'espace de stockage Supabase |
 
 `main` contient tout. Les branches de phase fusionnées ne servent plus.
 
@@ -30,8 +30,8 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 
 ```
 44 tables · 6 vues · 16 enums
-81 contrôles de sécurité RLS     (pnpm db:test)
-181 tests unitaires              (pnpm test)
+90 contrôles de sécurité RLS     (pnpm db:test)
+241 tests unitaires              (pnpm test)
 23 tâches turbo                  (lint typecheck test build)
 6 paquets                        core · diagrams · i18n · supabase · ui · web
 6 illustrations                  (apps/web/components/illustrations)
@@ -56,7 +56,7 @@ Dans cet ordre. Aucune exception : un contrôle rouge bloque la livraison.
 pnpm install                                  # jamais npm — voir règle 7
 pnpm db:reset                                 # base locale + schéma + démo
 pnpm db:types                                 # types générés depuis la base
-pnpm db:test                                  # 81 contrôles de sécurité
+pnpm db:test                                  # 90 contrôles de sécurité
 pnpm turbo run lint typecheck test build      # 23 tâches
 pnpm format:check                             # ou pnpm format pour corriger
 ```
@@ -233,7 +233,7 @@ quelqu'un parce qu'on n'avait pas anticipé son besoin.
 
 ---
 
-## SCHÉMAS TACTIQUES — LE FORMAT ET SON LECTEUR
+## SCHÉMAS TACTIQUES — LE FORMAT, SON LECTEUR ET SON ÉDITEUR
 
 `packages/diagrams` porte le format (docs/14), sa validation, l'interpolation
 et le vocabulaire visuel. Le web le dessine en SVG, le mobile le dessinera en
@@ -246,8 +246,7 @@ Trois choses à savoir avant d'y toucher :
   coordonnées vont de 0 à 100, jamais en pixels.
 - **`parseDiagram()` rend des erreurs, pas un booléen.** La colonne `canvas`
   est du `jsonb` : la base garantit du JSON, pas un schéma. L'écran nomme ce
-  qui cloche plutôt que de tomber — et l'éditeur de 5.7 réutilisera les mêmes
-  messages.
+  qui cloche plutôt que de tomber, et l'éditeur réutilise les mêmes messages.
 - **Les schémas livrés sont validés par les tests.** `packages/diagrams/data`
   passe par le même `parseDiagram()` dans `pnpm test` : un fichier abîmé fait
   échouer la CI avant d'atteindre la base.
@@ -261,8 +260,38 @@ le vocabulaire tactique est tracé en noir, un terrain sombre le rendrait
 illisible. Et le vocabulaire lui-même ne change jamais de couleur selon le
 thème — sinon il faudrait le réapprendre la nuit.
 
-Pour voir les schémas sans compte : **/maquettes/schemas-tactiques**, page
-publique qui joue les vrais schémas avec le vrai lecteur.
+### L'éditeur (5.7)
+
+Le moteur est dans `packages/diagrams/src/editor.ts` : **pur, sans React ni
+DOM**. Le composant `diagram-editor.tsx` ne décide de rien, il traduit un doigt
+en action. Trois conséquences à respecter si vous y touchez :
+
+- **L'invariant prime.** Quelle que soit la suite de gestes, le schéma produit
+  reste lisible par `parseDiagram()`. Un test joue 12 000 gestes tirés au sort
+  pour le vérifier. Le moteur **borne et refuse** ; il ne corrige jamais plus
+  tard.
+- **Un refus n'est jamais silencieux.** Il remplit `state.notice`, que l'écran
+  affiche. Un éditeur qui ignore un geste sans rien dire passe pour cassé.
+- **L'éditeur et le lecteur dessinent avec le même composant** et projettent le
+  terrain avec la même géométrie (`geometry.ts`). Deux dessins séparés
+  finiraient par diverger, et l'écart ne se verrait qu'une fois publié.
+
+Pour voir les schémas sans compte : **/maquettes/schemas-tactiques** (le
+lecteur) et **/maquettes/editeur-schemas** (l'éditeur, sans enregistrement).
+Deux pages publiques qui font tourner le vrai code.
+
+### Trois pièges d'écriture, dans leur ordre de découverte
+
+1. **Un UPDATE refusé par RLS ne lève AUCUNE erreur** : il touche zéro ligne.
+   Toute action serveur compte donc les lignes réellement écrites
+   (`.select('id')` puis `data.length`). C'est la quatrième fois que ce piège
+   se présente dans ce projet.
+2. **Un INSERT refusé par RLS, lui, LÈVE une erreur.** Les deux se mesurent de
+   la même façon dans `run-rls-tests.sh` — par un nombre de lignes — parce
+   qu'un booléen mentirait dans un cas sur deux.
+3. **RLS filtre des lignes, pas le contenu d'une colonne.** Ce qui entre dans
+   un `jsonb` est relu ET recopié champ par champ (`canonicalDiagram`,
+   ADR-21) : une validation des champs connus n'interdit pas les inconnus.
 
 ---
 
@@ -383,7 +412,7 @@ pnpm dev             site web en développement
 pnpm dev:mobile      application mobile (Expo)
 pnpm db:reset        base locale : schéma + données de démonstration
 pnpm db:types        régénérer packages/supabase/database.types.ts
-pnpm db:test         81 contrôles de sécurité RLS
-pnpm test            181 tests unitaires
+pnpm db:test         90 contrôles de sécurité RLS
+pnpm test            241 tests unitaires
 pnpm format          corriger le formatage
 ```

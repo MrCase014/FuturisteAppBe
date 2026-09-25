@@ -167,6 +167,31 @@ le jour où deux académies d'un même groupe partageraient une instance, et il
 reste le meilleur garde-fou contre une requête mal écrite. Une sécurité qu'on
 retire parce qu'« elle ne sert plus » est une sécurité qu'on ne remettra pas.
 
+### ADR-20 🟢 · L'éditeur de schémas a un moteur pur, vérifié par des gestes tirés au sort
+**Décision (25/09/2026) :** toute la logique d'édition — poser, déplacer,
+tracer, supprimer, ajouter une image-clé — vit dans `packages/diagrams`, sans
+React ni DOM. Le composant ne fait que traduire un doigt en action.
+**Raison :** un éditeur est ce qu'il y a de plus coûteux à vérifier à la main.
+Un geste se teste en une ligne dans un moteur pur ; il demanderait un vrai
+navigateur et un vrai doigt s'il vivait dans le composant. Surtout, un éditeur
+qui produit un fichier que le lecteur refuse fait perdre au coach le travail
+qu'il vient de faire — et il ne s'en aperçoit qu'à la relecture.
+**Ce que cela impose :** un invariant vérifié sur 12 000 gestes tirés au sort —
+quelle que soit la suite d'actions, le schéma reste lisible par `parseDiagram()`.
+Le moteur **borne et refuse** au lieu de « corriger plus tard », et chaque refus
+porte un message que l'écran affiche.
+
+### ADR-21 🟢 · Ce qui entre dans une colonne `jsonb` est recopié champ par champ
+**Décision (25/09/2026) :** avant d'écrire un schéma en base, le serveur le
+relit ET le reconstruit à partir des seuls champs que le format décrit
+(`canonicalDiagram`).
+**Raison :** RLS filtre des **lignes**, il ne regarde pas ce qu'il y a **dans**
+une colonne. Une validation qui vérifie les champs connus n'interdit pas les
+champs inconnus : n'importe quelle donnée envoyée par un navigateur entrerait
+en base à côté des joueurs, et y resterait.
+**Pourquoi recopier plutôt que filtrer :** une liste de champs interdits
+s'oublie d'être mise à jour ; une liste de champs autorisés ne le peut pas.
+
 ---
 
 ## Les 3 décisions tranchées par le fondateur
