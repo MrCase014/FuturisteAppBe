@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { Avatar } from '@/components/kit';
 import { ROLE_LABEL, type SessionProfile } from '@/lib/supabase/session';
@@ -16,11 +17,21 @@ export function AppHeader({
   return (
     <header className="sticky top-0 z-10 border-b border-surface-border bg-surface-card">
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
-        <Link href="/tableau-de-bord" className="min-w-0 flex-1">
-          <p className="text-caption uppercase tracking-[0.18em] text-content-muted">
-            Futuriste Académie FC
-          </p>
-          <p className="truncate font-display text-h3 text-content-primary">{academyName}</p>
+        <Link href="/tableau-de-bord" className="flex min-w-0 flex-1 items-center gap-3">
+          <Image
+            src="/logo-futuriste.jpg"
+            alt=""
+            width={40}
+            height={40}
+            className="h-10 w-10 shrink-0 rounded-md"
+            priority
+          />
+          <span className="min-w-0">
+            <p className="text-caption uppercase tracking-[0.18em] text-content-muted">
+              Futuriste Académie FC
+            </p>
+            <p className="truncate font-display text-h3 text-content-primary">{academyName}</p>
+          </span>
         </Link>
 
         <div className="hidden text-right sm:block">

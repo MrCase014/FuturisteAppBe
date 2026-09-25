@@ -48,6 +48,10 @@ module.exports = {
         domain: domainColors,
         level: levelColors,
         status: colors.status,
+        // Palette des illustrations : une seule valeur, identique dans les
+        // deux thèmes. Une image ne change pas de couleur quand l'interface
+        // s'assombrit — c'est la même règle que pour les schémas tactiques.
+        illustration: colors.illustration,
       },
       fontFamily: {
         display: ['Outfit', 'system-ui', 'sans-serif'],

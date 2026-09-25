@@ -34,6 +34,7 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 181 tests unitaires              (pnpm test)
 23 tâches turbo                  (lint typecheck test build)
 6 paquets                        core · diagrams · i18n · supabase · ui · web
+6 illustrations                  (apps/web/components/illustrations)
 ```
 
 Jeu de démonstration : 2 académies, 20 joueurs, 3 coachs, 3 équipes (dont 1 chez un concurrent, pour les tests de cloisonnement),
@@ -176,6 +177,34 @@ déploiement). `packages/core` porte `isMedicalRole`, `isStaffRole` et
 
 ---
 
+## IDENTITÉ VISUELLE ET INSTALLATION SUR TÉLÉPHONE
+
+**Les illustrations sont dessinées, pas photographiées.** L'académie forme des
+mineurs : une photo d'enfant identifiable demande le consentement écrit de sa
+famille, et ce consentement se retire (docs/12). Une illustration n'expose
+personne. Elles vivent dans `apps/web/components/illustrations`, en SVG, aux
+jetons `illustration` de `packages/ui`.
+
+Le parti pris est celui du contexte réel du club : terre battue ocre, mur de
+parpaings, soleil bas, maillots violets. Pas un gazon anglais. Voir docs/08
+§4bis, et **`/apercu-illustrations`** pour les regarder toutes.
+
+Contrairement aux schémas tactiques, dont la géométrie porte du SENS et vit
+donc dans `packages/diagrams` pour servir le web ET le mobile, ces dessins sont
+décoratifs : le mobile aura les siens, adaptés à son moteur de rendu.
+
+**L'application s'installe sur un téléphone sans magasin d'applications.** Le
+manifeste (`apps/web/app/manifest.ts`) et les icônes générées depuis l'écusson
+permettent l'ajout à l'écran d'accueil, en plein écran. Les mises à jour
+arrivent seules : personne ne réinstalle jamais rien. La marche à suivre, côté
+présidence, est dans **`conf.md`**.
+
+⚠️ **Ne jamais committer de photographie d'enfant** dans ce dépôt, ni l'afficher
+sur une page publique, même avec l'accord oral d'une famille. C'est la règle 2
+appliquée aux images.
+
+---
+
 ## MÉTHODOLOGIE PAR CATÉGORIE — QUI ÉCRIT, QUI APPLIQUE
 
 `/categories/<code>` porte le texte que tous les coachs lisent avant leur
@@ -278,101 +307,41 @@ Deux garde-fous transversaux, posés avec la sixième faille :
 
 ## DÉPLOYER LE SCHÉMA SUR SUPABASE
 
-Les trois secrets GitHub sont créés. Le déploiement est **manuel et volontaire** :
-migrer la base des familles à chaque fusion serait un effet de bord, pas une
-décision.
+La procédure complète est dans **[`conf.md` §2](conf.md#2-déployer-le-schéma-de-la-base)**.
 
-1. Ouvrir `https://github.com/MrCase014/FuturisteAppBe/actions`
-2. Colonne de gauche → **« Déployer le schéma sur Supabase »**
-3. Bouton **« Run workflow »**, à droite
-4. Branche : **`main`**
-5. Champ *« Taper APPLIQUER pour confirmer »* → écrire exactement `APPLIQUER`
-   (majuscules, sans espace)
-6. Bouton vert **« Run workflow »**
-
-Le workflow refuse de démarrer si la confirmation est absente ou si un secret
-manque. Il affiche d'abord un **aperçu** (`supabase db push --dry-run`) puis
-applique.
-
-Si le workflow n'apparaît pas dans la liste : il doit exister sur la branche par
-défaut — c'est le cas depuis la fusion de la PR #1.
+En deux phrases, pour qui lit ce fichier : le déploiement est **manuel et
+volontaire** — migrer la base des familles à chaque fusion serait un effet de
+bord, pas une décision. Il se lance depuis Actions → « Déployer le schéma sur
+Supabase » → branche `main` → confirmation `APPLIQUER`.
 
 ---
 
 ## RESTE À FAIRE CÔTÉ FONDATEUR
 
-Fait : schéma déployé (run #3 sur `fcd7381`), URL Configuration renseignée,
-inscriptions libres fermées.
+**Tout est désormais dans [`conf.md`](conf.md)**, écrit pour la présidence et
+non pour un développeur : déploiement du schéma, amorçage, création des
+comptes, service d'envoi de courriels, réglages de sécurité, installation sur
+téléphone, partage aux coachs et aux familles, et quoi faire quand quelque
+chose ne marche pas.
 
-Reste, dans `docs/17-MISE-EN-PRODUCTION.md` :
-
-1. **Redéployer le schéma** — la migration `20260919000005` ferme l'élévation
-   de privilèges. Tant qu'elle n'est pas appliquée, n'importe quel compte réel
-   peut se nommer médecin du club. À faire **avant** de créer les comptes.
-2. **Créer les premiers comptes réels** (section ci-dessous).
-3. **Leaked password protection** + longueur minimale 10 + **Secure password
-   change** (Authentication → Policies).
-4. **Sauvegardes** (offre gratuite : 7 jours seulement).
+Ne dupliquez pas ces instructions ici : un mode d'emploi écrit à deux endroits
+finit par dire deux choses différentes. Mettez `conf.md` à jour, et renvoyez-y.
 
 ---
 
 ## CRÉER LES PREMIERS COMPTES RÉELS
 
-Les inscriptions libres sont fermées : **plus personne ne crée de compte depuis
-l'application**, pas même la présidence. C'est voulu — une académie de mineurs
-n'a pas de bouton « s'inscrire ». Les comptes se créent donc à la main, en
-trois temps.
+La procédure complète est dans **[`conf.md` §4](conf.md#4-créer-les-comptes)**.
 
-**Un compte Supabase n'est qu'une adresse et un mot de passe.** Il ne dit pas
-qui vous êtes dans le club. C'est la ligne `profiles` qui le dit, et sans elle
-la connexion réussit puis renvoie aussitôt vers `/connexion`, sans rien
-expliquer. D'où l'étape 3, qui n'est pas optionnelle.
+Le point que le code impose, et qu'il faut connaître avant de toucher à
+l'authentification : **un compte `auth.users` n'est qu'une adresse et un mot de
+passe.** Sans ligne `profiles` correspondante, `getSessionProfile()` rend
+`null`, et l'écran renvoie vers `/connexion` sans rien expliquer. Toute
+création de compte se fait donc en deux temps.
 
-### 1 · Amorcer l'académie (une seule fois)
-
-Tableau de bord Supabase → **SQL Editor** → *New query* → coller le contenu de
-`supabase/bootstrap/01_academie_reelle.sql` → **Run**.
-
-Crée l'académie FUTURISTE et ses 7 catégories d'âge. Sans elles, aucune équipe
-ne peut être créée. Le fichier est **généré** depuis `packages/core/data` : il
-ne peut pas diverger du référentiel. Le relancer ne casse rien.
-
-### 2 · Créer les comptes
-
-Authentication → **Users** → *Add user* → *Create new user*, une fois par
-personne. Cocher **Auto Confirm User** (sans quoi le compte attend un courriel
-de confirmation).
-
-### 3 · Donner un rôle à chaque compte
-
-SQL Editor → coller `supabase/bootstrap/02_comptes.sql` **après y avoir
-remplacé les adresses d'exemple** par les vraies → **Run**. Le fichier affiche
-les lignes créées : trois lignes, trois rôles. S'il en manque une, l'adresse ne
-correspond à aucun compte.
-
-Ne commettez jamais les vraies adresses dans le dépôt : collez-les dans
-l'éditeur SQL, exécutez, laissez le fichier avec ses exemples.
-
-### Ce qu'on voit alors, et pourquoi c'est la bonne recette
-
-Le même enfant, regardé par trois comptes différents :
-
-| | Président (`SUPER_ADMIN`) | Médecin (`CLUB_DOCTOR`) | Coach (`COACH`) |
-|---|---|---|---|
-| Menu | Accueil, Joueurs, Séances, Stats, Gérer | Accueil, Infirmerie, Joueurs, Profil | Accueil, Séances, Joueurs, Progression, Profil |
-| Notes cliniques | ❌ | ✅ | ❌ |
-| Aptitude | ✅ lecture | ✅ écriture | ✅ ses joueurs |
-| Évaluations | ✅ | ❌ | ✅ ses joueurs |
-
-Si les trois voient la même chose, la sécurité est cassée — c'est le test de
-recette le plus rapide, et il ne demande qu'un téléphone.
-
-Au premier jour la base est vide : les écrans afficheront « aucun joueur »,
-« aucune séance ». C'est la règle d'honnêteté des écrans, pas une panne.
-
-**Un changement de rôle ne se fait jamais par l'intéressé** (garde-fou de la
-migration `20260919000005`). Le président nomme ses coachs et ses soignants ;
-son propre rôle, lui, ne se change que depuis l'éditeur SQL.
+Et **personne ne change son propre rôle** — garde-fou de la migration
+`20260919000005`. Un changement de rôle passe par quelqu'un d'autre, ou par
+l'éditeur SQL.
 
 ---
 
