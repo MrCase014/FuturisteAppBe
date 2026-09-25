@@ -120,6 +120,26 @@
     "serious": "#EC835A",
     "critical": "#D03B3B"
   },
+  "_illustrationComment": "Palette des illustrations (docs/08 §Illustrations). UNE seule valeur par couleur, pas de paire clair/sombre : une illustration est une image, et une image ne change pas de couleur quand l'interface s'assombrit. Les teintes viennent du contexte réel du club — terre battue ocre, mur de parpaings, ciel de saison sèche — et non d'une banque d'images générique.",
+  "illustration": {
+    "sun": "#F5B841",
+    "sunGlow": "#FBD98B",
+    "sky": "#BFE6FA",
+    "skyDeep": "#8FD3F4",
+    "dust": "#E8CFA3",
+    "dustDeep": "#D4B27E",
+    "dustShadow": "#BE9A67",
+    "wall": "#CFC6B8",
+    "wallLine": "#B0A392",
+    "figure": "#241A44",
+    "figureSoft": "#3B2D6E",
+    "jersey": "#7C3AED",
+    "jerseyAlt": "#38BDF8",
+    "skin": "#8A5A3B",
+    "ball": "#FFFFFF",
+    "ballLine": "#241A44",
+    "leaf": "#4E7A3A"
+  },
   "_diagramComment": "Le terrain des sch\u00e9mas tactiques (docs/14). Il reste VERT ET CLAIR en th\u00e8me sombre : le vocabulaire tactique est trac\u00e9 en noir, et un terrain sombre le rendrait illisible. Seule l'intensit\u00e9 baisse, pour ne pas \u00e9blouir la nuit au bord du terrain.",
   "diagram": {
     "grass": { "light": "#EAF5EC", "dark": "#D8E6DC" },

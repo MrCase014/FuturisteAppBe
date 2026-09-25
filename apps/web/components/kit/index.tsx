@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { DOMAINS, type DomainCode } from '@futuriste/core';
 import { levelLabel, type EvaluationLevel } from '@futuriste/ui';
+import { BallonAuRepos } from '@/components/illustrations';
 
 /**
  * Primitives d'interface FUTURISTE.
@@ -154,10 +155,21 @@ export function Avatar({ initials }: { initials: string }) {
   );
 }
 
+/**
+ * L'écran vide.
+ *
+ * Avec une illustration, il dit « il n'y a rien ENCORE ». Sans elle, il dit
+ * « il n'y a rien », et l'on croit à une panne le jour où l'on vient de créer
+ * son académie. Ce n'est pas la même phrase, et la différence se joue
+ * exactement au moment où l'on est le plus prêt à abandonner.
+ */
 export function EmptyState({ message, action }: { message: string; action?: string }) {
   return (
     <Card className="text-center">
-      <p className="text-body text-content-secondary">{message}</p>
+      <div className="mx-auto max-w-[180px]">
+        <BallonAuRepos alt="" className="rounded-md" />
+      </div>
+      <p className="mt-4 text-body text-content-secondary">{message}</p>
       {action && (
         <div className="mt-3">
           <Button variant="secondary">{action}</Button>

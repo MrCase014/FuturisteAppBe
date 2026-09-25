@@ -102,6 +102,57 @@ Jamais une pastille rouge seule.
 
 ---
 
+## 4bis. Illustrations
+
+> Source : `apps/web/components/illustrations/`, jetons `illustration` de
+> `packages/ui/tokens/colors.json`.
+
+### Pourquoi dessinées, et non photographiées
+
+L'académie forme des **mineurs**. Une photographie d'enfant identifiable ne
+s'affiche pas sans le consentement écrit de sa famille, et ce consentement se
+retire (docs/12). Une illustration ne pose aucune de ces questions : elle va en
+page d'accueil publique, se partage, s'imprime, sans exposer personne.
+
+Elles sont en **SVG dessiné dans le code**, pas en fichier image : quelques
+kilo-octets au lieu de plusieurs centaines, nettes sur tous les écrans, et aux
+couleurs du club parce qu'elles lisent les mêmes jetons que le reste.
+
+### Le parti pris visuel
+
+Le football **tel qu'il se joue ici** : terre battue ocre, mur de parpaings,
+soleil bas de saison sèche, maillots violets du club. Pas un gazon anglais sous
+un ciel gris — ce serait l'image d'un autre club.
+
+| Règle | Raison |
+|---|---|
+| Une seule palette, identique en thème clair et sombre | Une image ne change pas de couleur quand l'interface s'assombrit |
+| Aucun visage n'a de traits | Elles représentent des enfants, et aucun enfant en particulier |
+| Les membres sont des traits (`stroke`) ancrés à l'épaule ou la hanche | Dessinés en polygones, ils se détachaient du corps dès qu'une pose changeait |
+| Texte alternatif obligatoire | Le type `SceneProps` l'impose : on ne peut pas l'oublier |
+
+### Le jeu de scènes
+
+| Composant | Usage |
+|---|---|
+| `TerrainDeTerre` | Bandeau d'accueil — un entraînement ordinaire |
+| `EnRouteVersLeStade` | Le parcours individuel — ballon sous le bras, crampons sur l'épaule |
+| `DuelAuSoleil` | L'évaluation — le duel, là où l'on apprend le plus |
+| `GardienQuiPlonge` | L'appel à se connecter |
+| `CoachEtSonGroupe` | La méthodologie — la consigne avant l'atelier |
+| `BallonAuRepos` | Les écrans vides |
+
+Les voir toutes : **`/apercu-illustrations`**.
+
+### Les écrans vides ne sont pas décoratifs
+
+Un écran vide **sans** image dit « il n'y a rien ». **Avec** l'illustration, il
+dit « il n'y a rien ENCORE ». Ce n'est pas la même phrase, et la différence se
+joue exactement au moment où l'on vient de créer son académie et où l'on est
+le plus prêt à croire à une panne.
+
+---
+
 ## 5. Typographie
 
 | Rôle | Police | Détail |

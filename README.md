@@ -15,9 +15,24 @@ propriété de **FUTURISTE ACADÉMIE FC**.
 | | |
 |---|---|
 | **Architecture** | ✅ validée par le fondateur le 16/09/2026 |
-| **Phase actuelle** | ✅ PHASE 2b — Authentification et redirection par rôle |
-| **Prochaine étape** | PHASE 3 — Tableaux de bord |
+| **Phases livrées** | 1 · 2 · 2b · 3 · 4 · 4b · 5 (sauf 5.4 et 5.7) |
+| **Phase en cours** | PHASE 5 — reste les vidéos (5.4) et l'éditeur de schémas (5.7) |
 | **Langue MVP** | Français (anglais préparé dès le départ) |
+| **Installation** | Application web installable sur téléphone (PWA) — voir [`conf.md`](conf.md) |
+
+### Chiffres de référence
+
+```
+44 tables · 6 vues · 16 enums
+81 contrôles de sécurité RLS
+181 tests unitaires
+6 paquets : core · diagrams · i18n · ui · supabase · web
+```
+
+**Pour la présidence : tout ce qu'il y a à configurer est dans
+[`conf.md`](conf.md)** — déploiement, comptes, courriels, installation sur
+téléphone, partage aux coachs et aux familles. Aucune connaissance technique
+n'y est supposée.
 
 ---
 
