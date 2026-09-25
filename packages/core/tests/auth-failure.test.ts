@@ -62,6 +62,36 @@ describe('classifyAuthFailure', () => {
     );
   });
 
+  /**
+   * Trouvé en production, sur l'écran « mot de passe oublié » : une erreur
+   * ordinaire y affichait « Adresse e-mail ou mot de passe incorrect ». Un
+   * message absurde sur une page qui ne demande pas de mot de passe — et
+   * qui, en prime, révélait indirectement que quelque chose clochait avec
+   * l'adresse saisie. Sur un envoi de courriel, on se tait.
+   */
+  it('ne dit rien d’un compte sur un envoi de courriel', () => {
+    for (const cas of [
+      { code: 'invalid_credentials', status: 400 },
+      { code: 'user_not_found', status: 400 },
+      { code: 'validation_failed', status: 422 },
+      { code: 'inconnu_au_bataillon' },
+      {},
+    ]) {
+      expect(classifyAuthFailure(cas, 'EMAIL_LINK')).toBeNull();
+      expect(authErrorMessage(cas, 'EMAIL_LINK')).toBeNull();
+      // Le même cas, sur une connexion, parle — et dit toujours la même chose.
+      expect(classifyAuthFailure(cas, 'SIGN_IN')).toBe('CREDENTIALS');
+    }
+  });
+
+  it('continue de parler des pannes, même sur un envoi de courriel', () => {
+    expect(classifyAuthFailure({ status: 429 }, 'EMAIL_LINK')).toBe('RATE_LIMITED');
+    expect(classifyAuthFailure({ status: 500 }, 'EMAIL_LINK')).toBe('MAIL_UNAVAILABLE');
+    expect(classifyAuthFailure({ code: 'email_provider_disabled' }, 'EMAIL_LINK')).toBe(
+      'PROVIDER_DISABLED',
+    );
+  });
+
   it('range l’inconnu du côté prudent', () => {
     expect(classifyAuthFailure({ code: 'quelque_chose_de_neuf' }, 'SIGN_IN')).toBe('CREDENTIALS');
     expect(classifyAuthFailure({}, 'SIGN_IN')).toBe('CREDENTIALS');

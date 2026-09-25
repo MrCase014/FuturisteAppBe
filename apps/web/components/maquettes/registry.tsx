@@ -9,6 +9,7 @@ import {
 import { Bibliotheque, EspaceJoueur, EspaceParent, FicheJoueur } from './screens-famille';
 import { LandingPreview } from './landing-preview';
 import { SchemasTactiques } from './screens-schemas';
+import { MethodologieParAge } from './screens-methodologie';
 
 export interface MaquetteEntry {
   slug: string;
@@ -48,6 +49,15 @@ export const MAQUETTES: readonly MaquetteEntry[] = [
     phase: 3,
     note: "Une seule question à l'ouverture : qu'est-ce que je fais jeudi ?",
     render: () => <DashboardCoach />,
+  },
+  {
+    slug: 'methodologie',
+    ref: 'D12',
+    title: 'Méthodologie par catégorie',
+    role: 'Directeur',
+    phase: 5,
+    note: 'De U7 à U18 : priorités, format de jeu, évaluation. La direction corrige le texte, tous les coachs lisent le même.',
+    render: () => <MethodologieParAge />,
   },
   {
     slug: 'schemas-tactiques',

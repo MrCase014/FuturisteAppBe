@@ -1,0 +1,109 @@
+{
+  "_comment": "Méthodologie FUTURISTE par catégorie — source : docs/11-METHODOLOGIE-FUTURISTE.md §5. Ce fichier alimente la table `methodology`, que la direction peut ensuite modifier depuis l'écran Catégories. Le code ne lit JAMAIS ces textes pour décider quoi que ce soit : les règles dures (pas de note en U7, PLAYER DNA à partir de U13) vivent dans packages/core et sont vérifiées par des tests. Ici, ce sont des mots pour les coachs.",
+  "sections": [
+    { "key": "PRIORITES", "titleFr": "Priorités", "order": 1 },
+    { "key": "FORMAT", "titleFr": "Format de jeu", "order": 2 },
+    { "key": "EVALUATION", "titleFr": "Évaluation", "order": 3 },
+    { "key": "REPERE", "titleFr": "Point de repère", "order": 4 },
+    { "key": "INTERDITS", "titleFr": "Interdits", "order": 5 }
+  ],
+  "byAgeGroup": {
+    "U7": [
+      {
+        "key": "PRIORITES",
+        "bodyFr": "Motricité globale, coordination, relation au ballon, 1 contre 1, plaisir. À cet âge, l'enfant apprend en jouant : chaque minute sans ballon est une minute perdue."
+      },
+      {
+        "key": "FORMAT",
+        "bodyFr": "3 contre 3 ou 4 contre 4. Beaucoup de buts, beaucoup de ballons, des équipes qui changent souvent."
+      },
+      {
+        "key": "EVALUATION",
+        "bodyFr": "Qualitative uniquement. Aucune note n'est affichée — ni au joueur, ni à la famille. On décrit ce que l'enfant a osé, pas ce qu'il vaut."
+      },
+      {
+        "key": "INTERDITS",
+        "titleFr": "Ce qu'on ne fait pas en U7",
+        "bodyFr": "Statistiques. Postes fixes. Travail physique sans ballon. Discours longs."
+      }
+    ],
+    "U9": [
+      {
+        "key": "PRIORITES",
+        "bodyFr": "Technique de base, dribble, courage, pied faible, petits jeux. On encourage la tentative ratée plus que la passe facile."
+      },
+      { "key": "FORMAT", "bodyFr": "4 contre 4 ou 5 contre 5. Duels, parcours ludiques." },
+      {
+        "key": "EVALUATION",
+        "bodyFr": "8 compétences au maximum. Échelle 1 à 5, visible du coach seul."
+      },
+      {
+        "key": "REPERE",
+        "titleFr": "Nouveauté de la catégorie",
+        "bodyFr": "Premier objectif MY NEXT LEVEL : un seul, choisi avec l'enfant."
+      }
+    ],
+    "U11": [
+      {
+        "key": "PRIORITES",
+        "bodyFr": "Contrôle orienté, prise d'information, décision, occupation de l'espace."
+      },
+      {
+        "key": "FORMAT",
+        "bodyFr": "5 contre 5 ou 7 contre 7. Rondos, jeux de position simples."
+      },
+      {
+        "key": "EVALUATION",
+        "bodyFr": "Les 8 domaines. Le radar devient visible du joueur et de sa famille."
+      },
+      {
+        "key": "REPERE",
+        "titleFr": "La charnière",
+        "bodyFr": "C'est ici que le joueur apprend à REGARDER AVANT DE RECEVOIR. Tout le reste de sa formation en dépend : corrigez le regard avant le geste."
+      }
+    ],
+    "U13": [
+      {
+        "key": "PRIORITES",
+        "bodyFr": "Jeu de position, largeur, profondeur, transitions, tactique collective."
+      },
+      {
+        "key": "FORMAT",
+        "bodyFr": "8 contre 8 ou 11 contre 11. Jeux de position 4 contre 4 plus 3, situations réelles de match."
+      },
+      {
+        "key": "REPERE",
+        "titleFr": "Nouveauté de la catégorie",
+        "bodyFr": "PLAYER DNA activé. Statistiques de match complètes."
+      }
+    ],
+    "U15": [
+      {
+        "key": "PRIORITES",
+        "bodyFr": "Intensité, vitesse, physique AVEC ballon, tactique, compétition."
+      },
+      {
+        "key": "REPERE",
+        "titleFr": "Attention",
+        "bodyFr": "Pic de croissance : surveiller la charge et adapter individuellement. Un joueur qui grandit vite n'est pas un joueur qui régresse."
+      }
+    ],
+    "U16": [
+      {
+        "key": "PRIORITES",
+        "bodyFr": "Spécialisation progressive, analyse du jeu, autonomie, préparation physique."
+      }
+    ],
+    "U18": [
+      {
+        "key": "PRIORITES",
+        "bodyFr": "Performance, analyse vidéo, autonomie, projet de vie."
+      },
+      {
+        "key": "REPERE",
+        "titleFr": "Sortie de formation",
+        "bodyFr": "Dossier de développement FUTURISTE : douze ans de données réunies en un document que le joueur emporte."
+      }
+    ]
+  }
+}

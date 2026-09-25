@@ -1,6 +1,12 @@
 import Link from 'next/link';
 import { Alert, Card, SectionTitle } from '@/components/kit';
-import { supabaseAnonKey, supabaseUrl, supabaseUrlSource } from '@/lib/supabase/config';
+import {
+  supabaseAnonKey,
+  supabaseKeyKind,
+  supabaseProjectRef,
+  supabaseUrl,
+  supabaseUrlSource,
+} from '@/lib/supabase/config';
 
 export const metadata = { title: 'Diagnostic · FUTURISTE ACADÉMIE FC' };
 export const dynamic = 'force-dynamic';
@@ -18,7 +24,9 @@ export const dynamic = 'force-dynamic';
  */
 export default function DiagnosticPage() {
   const url = supabaseUrl();
+  const projectRef = supabaseProjectRef();
   const key = supabaseAnonKey();
+  const keyKind = supabaseKeyKind();
   const urlSource = supabaseUrlSource();
 
   const env = process.env.VERCEL_ENV ?? 'local';
@@ -47,9 +55,17 @@ export default function DiagnosticPage() {
           : `${url} · depuis le repli codé en dur (la variable est absente)`,
     },
     {
-      label: 'Clé anonyme',
-      ok: key.length > 0,
-      detail: key.length > 0 ? `présente · ${key.length} caractères` : 'absente',
+      label: 'Clé publique',
+      // Une clé secrète posée ici n'est pas « présente », c'est une fuite.
+      ok: key.length > 0 && keyKind !== 'SECRÈTE',
+      detail:
+        key.length === 0
+          ? 'absente'
+          : keyKind === 'SECRÈTE'
+            ? 'CLÉ SECRÈTE — à retirer immédiatement et à régénérer : elle est livrée à tous les visiteurs.'
+            : keyKind === 'inconnue'
+              ? `${key.length} caractères, format non reconnu — vérifiez qu'elle n'a pas été tronquée au copier-coller.`
+              : `${keyKind === 'publiable' ? 'clé publiable (sb_publishable_…)' : 'jeton JWT (eyJ…)'} · ${key.length} caractères`,
     },
   ];
 
@@ -77,6 +93,22 @@ export default function DiagnosticPage() {
       </div>
 
       <Card className="mt-5">
+        <SectionTitle>Quel projet Supabase</SectionTitle>
+        <p className="break-all font-display text-h2 tabular-nums text-futuriste-violet">
+          {projectRef || '—'}
+        </p>
+        <p className="mt-2 text-small text-content-secondary">
+          C&apos;est le projet auquel cette application parle. Ouvrez votre tableau de bord Supabase
+          : la même chaîne apparaît dans l&apos;adresse, après <code>/project/</code>.
+        </p>
+        <p className="mt-2 text-caption text-content-secondary">
+          Si les deux diffèrent, vos comptes existent d&apos;un côté et la connexion cherche de
+          l&apos;autre — c&apos;est la cause, et rien d&apos;autre n&apos;a besoin d&apos;être
+          corrigé.
+        </p>
+      </Card>
+
+      <Card className="mt-4">
         <SectionTitle>Quel déploiement</SectionTitle>
         <dl className="space-y-2 text-small">
           <div className="flex justify-between gap-4">

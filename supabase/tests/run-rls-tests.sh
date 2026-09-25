@@ -376,6 +376,28 @@ check 24 "Un visiteur non authentifié non plus" "0" \
 check 24 "Un coach ne peut pas copier un schéma vers une autre académie" "0" \
   "$(promotion "$COACH1" "update exercise_diagrams set academy_id='$OTHER_ACADEMY'")"
 
+# 25 · MÉTHODOLOGIE PAR CATÉGORIE (5.9). Le texte que tous les coachs lisent
+#      avant leur séance. Il doit être LU par tous, et ÉCRIT par la seule
+#      direction : une consigne que chacun peut réécrire n'est plus une
+#      consigne, c'est une opinion.
+check 25 "Le coach lit les 20 sections de méthodologie" "20" \
+  "$(as_user "$COACH1" 'select count(*) from methodology;')"
+check 25 "Le parent aussi : rien n'y est confidentiel" "20" \
+  "$(as_user "$PARENT_A" 'select count(*) from methodology;')"
+check 25 "Une autre académie ne lit aucune méthodologie" "0" \
+  "$(as_user "$OUTSIDER" 'select count(*) from methodology;')"
+check 25 "Un visiteur non authentifié non plus" "0" \
+  "$(as_user "" 'select count(*) from methodology;')"
+check 25 "Un coach ne réécrit pas la méthodologie" "0" \
+  "$(promotion "$COACH1" "update methodology set body_fr='réécrit par le coach'")"
+check 25 "Un parent non plus" "0" \
+  "$(promotion "$PARENT_A" "update methodology set body_fr='réécrit par le parent'")"
+check 25 "Le directeur, lui, la corrige bien" "20" \
+  "$(promotion "$DIRECTOR" "update methodology set body_fr='corrigé par la direction'")"
+check 25 "Le directeur ne corrige pas celle d'une autre académie" "0" \
+  "$(promotion "$DIRECTOR" "update methodology set body_fr='ingérence'
+     where academy_id='$OTHER_ACADEMY'")"
+
 # Invariant structurel : une politique ne compare jamais l'avant et l'après.
 # Le garde-fou qui le fait doit exister, et rester branché.
 check "R" "Le garde-fou d'élévation de privilèges est branché" "1" \
