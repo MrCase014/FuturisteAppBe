@@ -106,3 +106,35 @@ describe('recherche d’exercices', () => {
     expect(mostLimitingCriterion(outcome)).toBeNull();
   });
 });
+
+describe('plusieurs ateliers en parallèle', () => {
+  const rondo: SearchableExercise = {
+    id: 'rondo',
+    name: 'Rondo 4 contre 1',
+    objective: 'Conserver sous pression',
+    domainCode: 'INTELLIGENCE',
+    ageGroupCodes: ['U11'],
+    playersMin: 5,
+    playersMax: 10,
+    durationMin: 12,
+    defaultPhase: 'ACTIVATION',
+    isPublished: true,
+  };
+
+  it('écarte par défaut un exercice trop petit pour l’effectif', () => {
+    // Une recherche ordinaire répond « ce qui tourne tel quel ».
+    expect(mismatchReasons(rondo, { playersPresent: 24 })).toContain('EFFECTIF');
+  });
+
+  it('l’accepte quand plusieurs ateliers sont autorisés', () => {
+    // 24 joueurs, c'est trois carrés — c'est ce que fait un coach.
+    expect(mismatchReasons(rondo, { playersPresent: 24, allowMultipleGroups: true })).toEqual([]);
+  });
+
+  it('garde l’effectif MINIMUM comme barrière, ateliers ou non', () => {
+    // On ne joue pas un 4 contre 1 à trois, quel que soit le nombre d'ateliers.
+    expect(mismatchReasons(rondo, { playersPresent: 3, allowMultipleGroups: true })).toContain(
+      'EFFECTIF',
+    );
+  });
+});

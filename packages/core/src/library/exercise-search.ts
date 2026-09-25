@@ -24,6 +24,19 @@ export interface ExerciseCriteria {
   maxDurationMin?: number;
   /** Recherche libre sur le nom et l'objectif. */
   text?: string;
+  /**
+   * Autoriser plusieurs ateliers en parallèle.
+   *
+   * Un rondo prévu pour 10 joueurs se monte en TROIS carrés quand 24 sont
+   * présents : c'est ce que fait un coach, et l'écarter priverait le groupe
+   * de la moitié de la bibliothèque dès qu'il y a du monde. L'effectif
+   * MINIMUM, lui, reste une barrière : on ne joue pas un 4 contre 1 à trois.
+   *
+   * Faux par défaut : une recherche ordinaire répond « ce qui tourne tel
+   * quel ». C'est le Session Studio qui l'active, parce que lui annonce
+   * ensuite le nombre d'ateliers à monter.
+   */
+  allowMultipleGroups?: boolean;
 }
 
 export interface SearchableExercise {
@@ -73,10 +86,9 @@ export function mismatchReasons(
   }
 
   if (criteria.playersPresent !== undefined) {
-    if (
-      criteria.playersPresent < exercise.playersMin ||
-      criteria.playersPresent > exercise.playersMax
-    ) {
+    if (criteria.playersPresent < exercise.playersMin) {
+      reasons.push('EFFECTIF');
+    } else if (!criteria.allowMultipleGroups && criteria.playersPresent > exercise.playersMax) {
       reasons.push('EFFECTIF');
     }
   }
