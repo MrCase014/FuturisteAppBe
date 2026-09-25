@@ -192,6 +192,20 @@ en base à côté des joueurs, et y resterait.
 **Pourquoi recopier plutôt que filtrer :** une liste de champs interdits
 s'oublie d'être mise à jour ; une liste de champs autorisés ne le peut pas.
 
+### ADR-22 🟢 · Une règle que le moteur ne peut pas vérifier est annoncée, jamais supposée
+**Décision (25/09/2026) :** le Session Studio rend deux listes distinctes — les
+règles dures qu'il a pu trancher, et celles que les données de la bibliothèque
+ne permettent pas de trancher. Il n'invente aucune valeur manquante.
+**Raison :** trois garde-fous de docs/11 §4 portent sur des propriétés
+qu'aucun exercice ne décrit aujourd'hui : la part du temps où chaque enfant a
+un ballon, la longueur des files d'attente, le caractère analytique d'un bloc.
+Le moteur pourrait les supposer — il afficherait alors « conforme » sur une
+séance que personne n'a vérifiée. Inventer un chiffre pour faire passer un
+garde-fou pédagogique le désarme tout en donnant l'illusion contraire.
+**Ce que cela change à l'écran :** le coach voit ce qui reste à sa charge, et
+le sait AVANT la séance. Le jour où la bibliothèque portera l'information, ces
+règles passeront d'une liste à l'autre sans changer une ligne d'interface.
+
 ---
 
 ## Les 3 décisions tranchées par le fondateur

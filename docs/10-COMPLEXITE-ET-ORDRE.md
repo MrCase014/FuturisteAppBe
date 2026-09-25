@@ -145,8 +145,8 @@ en moins de 20 secondes et comprend le schéma en moins de 10 secondes.
 
 ### ▶️ PHASE 6 — Session Studio *(2 semaines)*
 ```
-6.1  Moteur de règles dans packages/core  ← AVANT toute interface
-6.2  Tests du moteur (30 cas au minimum)
+6.1  Moteur de règles dans packages/core  ← ✅ livré (sessions/plan.ts)
+6.2  Tests du moteur (30 cas au minimum)  ← ✅ livré (44 cas)
 6.3  Assistant en 4 étapes
 6.4  Timeline 7 phases, glisser-déposer
 6.5  Ajouter / retirer / remplacer un exercice

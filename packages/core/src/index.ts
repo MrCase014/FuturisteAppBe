@@ -12,3 +12,4 @@ export * from './security/safe-redirect';
 export * from './security/auth-failure';
 export * from './security/password';
 export * from './security/session-freshness';
+export * from './sessions/plan';

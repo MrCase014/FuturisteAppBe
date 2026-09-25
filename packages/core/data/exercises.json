@@ -601,5 +601,72 @@
     "regression": "Question fermée, réponse en un mot.",
     "intensity": 1,
     "cognitiveLoad": 3
+  },
+  {
+    "slug": "carre-magique-3-plus-1",
+    "name": "Carré magique 3+1",
+    "objective": "Trouver le joueur libre avant que la pression n'arrive",
+    "domain": "INTELLIGENCE",
+    "ageGroups": ["U11", "U13"],
+    "level": "INTERMEDIAIRE",
+    "phase": "JEU_POSITION",
+    "durationMin": 16,
+    "playersMin": 8,
+    "playersMax": 12,
+    "goalkeepers": 0,
+    "equipment": ["12 coupelles", "2 ballons", "Chasubles"],
+    "area": [20, 20],
+    "description": "Deux équipes de quatre dans un carré divisé en quatre zones égales. L'équipe en possession garde le ballon avec l'aide d'un joker qui joue toujours avec elle. Interdiction à deux joueurs de la même équipe d'occuper la même zone.",
+    "coachInstructions": "Ne dites pas « démarque-toi ». Demandez : « dans quelle zone personne ne t'a suivi ? ». La règle des zones fait le travail à votre place — c'est elle qui enseigne, pas le discours.",
+    "observationPoints": [
+      "Occupation des quatre zones",
+      "Regard avant la réception",
+      "Passe vers le joueur le moins couvert"
+    ],
+    "commonMistakes": [
+      "Deux joueurs dans la même zone",
+      "Suivre le ballon au lieu de tenir sa zone",
+      "Passer au plus proche par réflexe"
+    ],
+    "variations": ["Deux touches maximum", "Un point par passe qui traverse une zone"],
+    "progression": "Retirer le joker : le jeu devient un 4 contre 4 en zones.",
+    "regression": "Agrandir le carré de deux mètres par côté.",
+    "intensity": 3,
+    "cognitiveLoad": 4
+  },
+  {
+    "slug": "match-a-theme-largeur",
+    "name": "Match à thème · jouer large",
+    "objective": "Étirer l'adversaire en utilisant toute la largeur du terrain",
+    "domain": "TACTIQUE",
+    "ageGroups": ["U11", "U13"],
+    "level": "INTERMEDIAIRE",
+    "phase": "SITUATION_REELLE",
+    "durationMin": 15,
+    "playersMin": 8,
+    "playersMax": 16,
+    "goalkeepers": 0,
+    "equipment": ["4 mini-buts", "Chasubles", "Ballons"],
+    "area": [40, 30],
+    "description": "Match libre avec deux mini-buts par camp, placés sur les côtés plutôt qu'au centre. Pour marquer, il faut donc passer par un couloir. Aucun score n'est annoncé : on compte les situations créées, pas les buts.",
+    "coachInstructions": "Laissez jouer. Intervenez entre deux séquences, jamais pendant : à cet âge, une consigne criée pendant l'action remplace la décision de l'enfant par la vôtre.",
+    "observationPoints": [
+      "Largeur prise sans ballon",
+      "Changement de côté après trois passes",
+      "Course vers le second but quand le premier est fermé"
+    ],
+    "commonMistakes": [
+      "Tout le monde vers le ballon",
+      "Ignorer le but du côté opposé",
+      "Conduire vers la pression"
+    ],
+    "variations": [
+      "Un but compte double après un changement de côté",
+      "Interdire le dribble en zone centrale"
+    ],
+    "progression": "Réduire la largeur de cinq mètres.",
+    "regression": "Ajouter un joker qui joue avec l’équipe en possession.",
+    "intensity": 4,
+    "cognitiveLoad": 3
   }
 ]

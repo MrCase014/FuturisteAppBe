@@ -22,7 +22,8 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 | 3 | Tableaux de bord, navigation, paramètres | ✅ fusionnée (PR #4) |
 | 4 | Joueurs, équipes, catégories, coachs | ✅ fusionnée (PR #5) |
 | 4b | Personnel soignant et confidentialité médicale | ⏳ en revue (PR #6) |
-| 5 | Bibliothèque d'exercices | ⏳ en cours — 5.1, 5.2, 5.3, 5.5, 5.6, 5.7, 5.8, 5.9 livrés · reste 5.4 (vidéos), qui attend l'espace de stockage Supabase |
+| 5 | Bibliothèque d'exercices | ⏳ 5.1, 5.2, 5.3, 5.5, 5.6, 5.7, 5.8, 5.9 livrés · reste 5.4 (vidéos), qui attend l'espace de stockage Supabase |
+| 6 | Session Studio | ⏳ en cours — 6.1 (moteur) et 6.2 (tests) livrés · reste l'assistant et la timeline |
 
 `main` contient tout. Les branches de phase fusionnées ne servent plus.
 
@@ -31,14 +32,14 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 ```
 44 tables · 6 vues · 16 enums
 90 contrôles de sécurité RLS     (pnpm db:test)
-241 tests unitaires              (pnpm test)
+285 tests unitaires              (pnpm test)
 23 tâches turbo                  (lint typecheck test build)
 6 paquets                        core · diagrams · i18n · supabase · ui · web
 6 illustrations                  (apps/web/components/illustrations)
 ```
 
 Jeu de démonstration : 2 académies, 20 joueurs, 3 coachs, 3 équipes (dont 1 chez un concurrent, pour les tests de cloisonnement),
-7 catégories, 4 évaluations, 3 objectifs, 20 exercices, 3 schémas tactiques,
+7 catégories, 4 évaluations, 3 objectifs, 22 exercices, 3 schémas tactiques,
 20 sections de méthodologie, 1 médecin, 1 kiné. **0 séance, 0 présence** — normal,
 la prise de présence arrive en phase 7.
 
@@ -233,6 +234,41 @@ quelqu'un parce qu'on n'avait pas anticipé son besoin.
 
 ---
 
+## SESSION STUDIO — LE MOTEUR AVANT L'INTERFACE
+
+`packages/core/src/sessions/plan.ts` répond à la question du jeudi soir :
+« qu'est-ce que je fais demain, avec les joueurs qui seront là ? »
+
+Trois principes, et ils se tiennent :
+
+- **Le moteur propose, il ne décide pas.** Chaque bloc porte LA RAISON de son
+  choix. Un coach qui ne comprend pas pourquoi un exercice est là le remplace
+  au hasard, et le studio ne lui aura rien appris.
+- **Un trou reste un trou.** Quand aucun exercice ne convient, le bloc reste
+  vide et nomme le critère qui l'a vidé. Remplir avec « le moins mauvais »
+  ferait courir un exercice inadapté à des enfants, sans que le coach sache
+  qu'un compromis a été fait à sa place.
+- **Ce qui ne peut pas être vérifié est ANNONCÉ.** Certaines règles dures de
+  docs/11 §4 portent sur des propriétés que la bibliothèque ne décrit pas
+  encore (part de temps à un ballon par enfant, files d'attente). Le moteur les
+  rend dans `unverified` au lieu de les supposer. Inventer un chiffre pour
+  faire passer un garde-fou pédagogique le désarmerait tout en donnant
+  l'illusion contraire (ADR-22).
+
+Le plan est **déterministe** : même demande, même séance. Un coach qui recharge
+son écran doit retrouver la sienne, pas une autre — d'où le départage par
+identifiant au moment du tri.
+
+L'effectif MINIMUM d'un exercice est une barrière ; son maximum ne l'est pas :
+un rondo prévu pour 10 se monte en trois carrés quand 24 sont présents, et le
+plan annonce le nombre d'ateliers. Sans cela, le coach arrive au terrain avec
+de quoi en monter un seul.
+
+À voir sans compte : **/maquettes/session-studio-moteur** — le vrai moteur sur
+la vraie bibliothèque, trous compris.
+
+---
+
 ## SCHÉMAS TACTIQUES — LE FORMAT, SON LECTEUR ET SON ÉDITEUR
 
 `packages/diagrams` porte le format (docs/14), sa validation, l'interpolation
@@ -413,6 +449,6 @@ pnpm dev:mobile      application mobile (Expo)
 pnpm db:reset        base locale : schéma + données de démonstration
 pnpm db:types        régénérer packages/supabase/database.types.ts
 pnpm db:test         90 contrôles de sécurité RLS
-pnpm test            241 tests unitaires
+pnpm test            285 tests unitaires
 pnpm format          corriger le formatage
 ```

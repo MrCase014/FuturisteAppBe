@@ -11,6 +11,7 @@ import { LandingPreview } from './landing-preview';
 import { SchemasTactiques } from './screens-schemas';
 import { MethodologieParAge } from './screens-methodologie';
 import { EditeurDeSchemas } from './screens-editeur';
+import { SessionStudioPropose } from './screens-session-studio';
 
 export interface MaquetteEntry {
   slug: string;
@@ -122,6 +123,15 @@ export const MAQUETTES: readonly MaquetteEntry[] = [
     phase: 5,
     note: 'Le coach dessine son exercice au doigt, ajoute des images, et voit l’animation avant de l’enregistrer.',
     render: () => <EditeurDeSchemas />,
+  },
+  {
+    slug: 'session-studio-moteur',
+    ref: 'C9',
+    title: 'Session Studio · la séance proposée',
+    role: 'Coach',
+    phase: 6,
+    note: 'Le vrai moteur, sur la vraie bibliothèque : chaque exercice porte la raison de son choix, et un trou reste un trou.',
+    render: () => <SessionStudioPropose />,
   },
   {
     slug: 'espace-joueur',

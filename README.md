@@ -15,8 +15,8 @@ propriété de **FUTURISTE ACADÉMIE FC**.
 | | |
 |---|---|
 | **Architecture** | ✅ validée par le fondateur le 16/09/2026 |
-| **Phases livrées** | 1 · 2 · 2b · 3 · 4 · 4b · 5 (sauf 5.4) |
-| **Phase en cours** | PHASE 5 — reste l'envoi de vidéos (5.4), qui attend l'espace de stockage Supabase |
+| **Phases livrées** | 1 · 2 · 2b · 3 · 4 · 4b · 5 (sauf 5.4) · 6.1 et 6.2 |
+| **Phase en cours** | PHASE 6 — Session Studio : le moteur et ses tests sont livrés, restent l'assistant et la timeline |
 | **Langue MVP** | Français (anglais préparé dès le départ) |
 | **Installation** | Application web installable sur téléphone (PWA) — voir [`conf.md`](conf.md) |
 
@@ -25,7 +25,7 @@ propriété de **FUTURISTE ACADÉMIE FC**.
 ```
 44 tables · 6 vues · 16 enums
 90 contrôles de sécurité RLS
-241 tests unitaires
+285 tests unitaires
 6 paquets : core · diagrams · i18n · ui · supabase · web
 ```
 
