@@ -13,7 +13,7 @@ Les durées sont des fourchettes réalistes, pas des promesses.
 | Phase | Contenu | Durée | Livrable vérifiable |
 |:---:|---|:---:|---|
 | **1** | Architecture + UX | 1 sem | Ce dossier validé + maquettes des 10 écrans clés |
-| **2** | Base de données + connexion | 2 sem | 42 tables, RLS, 12 tests de sécurité au vert, on peut se connecter |
+| **2** | Base de données + connexion | 2 sem | 44 tables, RLS, 12 tests de sécurité au vert, on peut se connecter |
 | **3** | Tableaux de bord | 1 sem | Le directeur voit ses chiffres, le coach voit ses séances |
 | **4** | Joueurs · catégories · équipes | 2 sem | 20 joueurs saisis, affectés, fiches complètes |
 | **5** | Bibliothèque d'exercices | 2,5 sem | 20 exercices avec schémas 2D et vidéos |

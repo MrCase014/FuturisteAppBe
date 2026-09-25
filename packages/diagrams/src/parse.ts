@@ -296,3 +296,106 @@ export function animatedElementIds(diagram: DiagramCanvas): Set<string> {
 }
 
 export type { DiagramCanvas, DiagramElement, Keyframe, Point };
+
+/**
+ * Reconstruit un schéma à partir des SEULS champs que le format décrit.
+ *
+ * `parseDiagram()` vérifie que tout ce qu'il connaît est correct — mais il
+ * n'interdit pas ce qu'il ne connaît pas. Un canevas venu d'un navigateur peut
+ * donc porter, à côté des joueurs, n'importe quelle donnée supplémentaire, qui
+ * entrerait telle quelle dans la colonne `jsonb` et y resterait.
+ *
+ * Cette fonction est la réponse : avant d'écrire en base, on RECOPIE le schéma
+ * champ par champ. Ce qui n'est pas dans le format ne franchit pas la porte.
+ * Recopier plutôt que filtrer est délibéré — une liste de champs interdits
+ * s'oublie d'être mise à jour, une liste de champs autorisés ne le peut pas.
+ */
+export function canonicalDiagram(diagram: DiagramCanvas): DiagramCanvas {
+  const point = (p: Point): Point => ({ x: p.x, y: p.y });
+
+  const elements: DiagramElement[] = diagram.elements.map((element) => {
+    switch (element.kind) {
+      case 'PLAYER':
+        return {
+          id: element.id,
+          kind: 'PLAYER',
+          team: element.team,
+          ...(element.number === undefined ? {} : { number: element.number }),
+          ...(element.label === undefined ? {} : { label: element.label }),
+          x: element.x,
+          y: element.y,
+          ...(element.hasBall ? { hasBall: true } : {}),
+        };
+      case 'GK':
+        return { id: element.id, kind: 'GK', team: element.team, x: element.x, y: element.y };
+      case 'BALL':
+        return { id: element.id, kind: 'BALL', x: element.x, y: element.y };
+      case 'CONE':
+        return {
+          id: element.id,
+          kind: 'CONE',
+          ...(element.color === undefined ? {} : { color: element.color }),
+          x: element.x,
+          y: element.y,
+        };
+      case 'GOAL':
+        return {
+          id: element.id,
+          kind: 'GOAL',
+          size: element.size,
+          rotation: element.rotation,
+          x: element.x,
+          y: element.y,
+        };
+      case 'ZONE':
+        return {
+          id: element.id,
+          kind: 'ZONE',
+          shape: element.shape,
+          purpose: element.purpose,
+          x: element.x,
+          y: element.y,
+          w: element.w,
+          h: element.h,
+          ...(element.label === undefined ? {} : { label: element.label }),
+        };
+      case 'ARROW':
+        return {
+          id: element.id,
+          kind: 'ARROW',
+          motion: element.motion,
+          points: element.points.map(point),
+          ...(element.label === undefined ? {} : { label: element.label }),
+        };
+      case 'TEXT':
+        return { id: element.id, kind: 'TEXT', text: element.text, x: element.x, y: element.y };
+    }
+  });
+
+  const keyframes: Keyframe[] = diagram.keyframes.map((frame) => {
+    const positions: Record<string, Point> = {};
+    for (const [id, value] of Object.entries(frame.positions)) positions[id] = point(value);
+    return {
+      t: frame.t,
+      ...(frame.phase === undefined ? {} : { phase: frame.phase }),
+      ...(frame.caption === undefined ? {} : { caption: frame.caption }),
+      positions,
+    };
+  });
+
+  return {
+    version: 1,
+    field: {
+      kind: diagram.field.kind,
+      lengthM: diagram.field.lengthM,
+      widthM: diagram.field.widthM,
+      orientation: diagram.field.orientation,
+    },
+    elements,
+    keyframes,
+    ...(diagram.legend === undefined
+      ? {}
+      : { legend: diagram.legend.map((entry) => ({ label: entry.label, color: entry.color })) }),
+    ...(diagram.alt === undefined ? {} : { alt: diagram.alt }),
+  };
+}

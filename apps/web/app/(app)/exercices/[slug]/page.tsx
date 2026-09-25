@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { SESSION_PHASES } from '@futuriste/core';
+import { SESSION_PHASES, isStaffRole } from '@futuriste/core';
 import { Card, DomainChip, SectionTitle } from '@/components/kit';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { requireSessionProfile } from '@/lib/supabase/session';
@@ -39,7 +39,7 @@ function List({ title, items }: { title: string; items: string[] }) {
  * complexifie.
  */
 export default async function FicheExercicePage({ params }: { params: Promise<{ slug: string }> }) {
-  await requireSessionProfile();
+  const profile = await requireSessionProfile();
   const supabase = await createSupabaseServerClient();
   if (!supabase) redirect('/connexion');
 
@@ -102,7 +102,13 @@ export default async function FicheExercicePage({ params }: { params: Promise<{ 
         )}
       </Card>
 
-      <DiagramSection diagrams={diagrams} />
+      <DiagramSection
+        diagrams={diagrams}
+        exerciseSlug={slug}
+        canEdit={isStaffRole(profile.role) || profile.role === 'COACH'}
+        viewerId={profile.id}
+        isStaff={isStaffRole(profile.role)}
+      />
 
       <Card>
         <SectionTitle>Déroulé</SectionTitle>

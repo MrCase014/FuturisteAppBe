@@ -144,7 +144,7 @@ documents sont ce qui rend cette traçabilité opposable.
 
 | Mesure | Où |
 |---|---|
-| 85 politiques RLS, aucune table sans RLS | `supabase/migrations/…_rls_policies.sql` |
+| 91 politiques RLS, aucune table sans RLS | `supabase/migrations/…_rls_policies.sql` |
 | **24 contrôles de sécurité** rejoués à chaque push | `supabase/tests/run-rls-tests.sh` |
 | WITH CHECK explicite sur toute politique UPDATE | `…_harden_update_policies.sql` |
 | Journal d'audit infalsifiable et non effaçable | `…_harden_audit_logs.sql` |

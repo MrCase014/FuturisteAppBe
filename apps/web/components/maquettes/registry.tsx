@@ -10,6 +10,7 @@ import { Bibliotheque, EspaceJoueur, EspaceParent, FicheJoueur } from './screens
 import { LandingPreview } from './landing-preview';
 import { SchemasTactiques } from './screens-schemas';
 import { MethodologieParAge } from './screens-methodologie';
+import { EditeurDeSchemas } from './screens-editeur';
 
 export interface MaquetteEntry {
   slug: string;
@@ -112,6 +113,15 @@ export const MAQUETTES: readonly MaquetteEntry[] = [
     phase: 8,
     note: 'Où en est le joueur, que doit-il améliorer — sans les données médicales.',
     render: () => <FicheJoueur />,
+  },
+  {
+    slug: 'editeur-schemas',
+    ref: 'C19',
+    title: 'Éditeur de schémas',
+    role: 'Coach',
+    phase: 5,
+    note: 'Le coach dessine son exercice au doigt, ajoute des images, et voit l’animation avant de l’enregistrer.',
+    render: () => <EditeurDeSchemas />,
   },
   {
     slug: 'espace-joueur',

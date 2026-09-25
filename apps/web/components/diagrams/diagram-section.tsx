@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { parseDiagram } from '@futuriste/diagrams';
 import { Card, SectionTitle } from '@/components/kit';
 import type { ExerciseDiagramRow } from '@/lib/data/library';
@@ -17,15 +18,37 @@ import { DiagramPlayer } from './diagram-player';
  * terrain, un dimanche matin, perdre la consigne écrite parce qu'un dessin
  * est mal formé serait le pire des échanges.
  */
-export function DiagramSection({ diagrams }: { diagrams: ExerciseDiagramRow[] }) {
+export function DiagramSection({
+  diagrams,
+  exerciseSlug,
+  canEdit = false,
+  viewerId = null,
+  isStaff = false,
+}: {
+  diagrams: ExerciseDiagramRow[];
+  exerciseSlug: string;
+  /** Coachs et direction dessinent ; les autres lisent (RLS le redit en base). */
+  canEdit?: boolean;
+  viewerId?: string | null;
+  isStaff?: boolean;
+}) {
+  const nouveau = `/exercices/${exerciseSlug}/schemas/nouveau`;
+  // La même règle que RLS, à l'écran : l'auteur, ou la direction.
+  const mien = (row: ExerciseDiagramRow) =>
+    isStaff || (viewerId !== null && row.createdBy === viewerId);
+
   if (diagrams.length === 0) {
     return (
-      <Card>
+      <Card className="space-y-3">
         <SectionTitle>Schéma</SectionTitle>
         <p className="text-body text-content-secondary">
-          Aucun schéma n’est encore associé à cet exercice. L’éditeur de schémas arrive en 5.7 ;
-          d’ici là, ils sont saisis au format JSON.
+          Aucun schéma n’est encore associé à cet exercice.
         </p>
+        {canEdit && (
+          <Link href={nouveau} className="text-small text-futuriste-violet underline">
+            Dessiner un schéma →
+          </Link>
+        )}
       </Card>
     );
   }
@@ -53,13 +76,36 @@ export function DiagramSection({ diagrams }: { diagrams: ExerciseDiagramRow[] })
                   … et {result.issues.length - 5} autre(s).
                 </p>
               )}
+              {canEdit && (
+                <Link
+                  href={`/exercices/${exerciseSlug}/schemas/${row.id}`}
+                  className="mt-2 inline-block text-small text-futuriste-violet underline"
+                >
+                  Ouvrir ce schéma
+                </Link>
+              )}
             </div>
           );
         }
         return (
-          <DiagramPlayer key={row.id} diagram={result.diagram} title={row.title ?? undefined} />
+          <div key={row.id} className="space-y-1">
+            <DiagramPlayer diagram={result.diagram} title={row.title ?? undefined} />
+            {canEdit && (
+              <Link
+                href={`/exercices/${exerciseSlug}/schemas/${row.id}`}
+                className="text-small text-futuriste-violet underline"
+              >
+                {mien(row) ? 'Modifier ce schéma' : 'Partir de ce schéma'}
+              </Link>
+            )}
+          </div>
         );
       })}
+      {canEdit && (
+        <Link href={nouveau} className="block text-small text-futuriste-violet underline">
+          Dessiner un autre schéma →
+        </Link>
+      )}
     </Card>
   );
 }

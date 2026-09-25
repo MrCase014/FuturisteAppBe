@@ -136,7 +136,7 @@ Le coach se connecte : il voit ses 16 joueurs, et **aucun autre**.
 5.4  Envoi de vidéos + miniatures + lecteur
 5.5  packages/diagrams : le format JSON (document 14)
 5.6  Lecteur de schémas 2D animés          ← faire le lecteur EN PREMIER
-5.7  Éditeur de schémas 2D (version simple) ← 🔴 le morceau difficile
+5.7  Éditeur de schémas 2D (version simple) ← ✅ livré (moteur pur, ADR-20)
 5.8  20 exercices FUTURISTE saisis
 5.9  Méthodologie par âge (CMS)
 ```

@@ -195,6 +195,15 @@ export interface ExerciseDiagramRow {
   title: string | null;
   /** Le canevas brut : il est validé à l'affichage, pas ici (voir plus bas). */
   canvas: unknown;
+  /**
+   * Qui l'a dessiné.
+   *
+   * RLS n'autorise la modification qu'à l'auteur ou à la direction. L'écran a
+   * besoin de le savoir POUR NE PAS PROPOSER un bouton qui sera refusé : rien
+   * n'est plus décourageant que de dessiner dix minutes avant d'apprendre
+   * qu'on n'avait pas le droit.
+   */
+  createdBy: string | null;
 }
 
 /**
@@ -212,9 +221,14 @@ export async function exerciseDiagrams(
 ): Promise<ExerciseDiagramRow[]> {
   const { data } = await supabase
     .from('exercise_diagrams')
-    .select('id, title, canvas')
+    .select('id, title, canvas, created_by')
     .eq('exercise_id', exerciseId)
     .order('order_index');
 
-  return (data ?? []).map((row) => ({ id: row.id, title: row.title, canvas: row.canvas }));
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    title: row.title,
+    canvas: row.canvas,
+    createdBy: row.created_by,
+  }));
 }
