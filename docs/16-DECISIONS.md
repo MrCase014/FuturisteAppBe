@@ -224,6 +224,37 @@ objectif ni enregistrer sa séance. Écrire `is_staff() and owns_X(...)` revient
   démonstration est une table sans contrôle** : c'est ce vide qui a laissé la
   régression passer huit jours.
 
+### ADR-24 🟢 · Une règle que TOUT écrivain doit respecter vit dans le schéma, pas dans l'application
+**Décision (27/09/2026) :** l'événement au calendrier d'une séance est créé et
+tenu à jour par un déclencheur (`training_sessions_mirror_event`), et l'unicité
+« un événement par séance » par un index. Aucun code applicatif ne crée
+d'événement.
+**Raison :** `attendance.event_id` pointe vers `events`. Une séance sans
+événement est donc une séance dont **l'appel est impossible** — et la phase 6 en
+a livré deux sans que rien ne le dise : pas d'erreur, pas d'alerte, juste une
+fonctionnalité absente que le coach aurait découverte au bord du terrain, un
+dimanche matin. Une séance naît par le Session Studio, par la duplication, par
+le jeu de démonstration, demain par un import ou par la file hors ligne : mettre
+la règle dans l'application obligerait chacun de ces chemins à s'en souvenir, et
+le premier qui oublierait relivrerait le défaut. Dans le schéma, elle tient pour
+tout écrivain, y compris ceux qui n'existent pas encore.
+**Le déclencheur est `security definer`** parce que le miroir n'est pas
+l'écriture d'un utilisateur : le droit a déjà été vérifié par
+`training_sessions_write`. Sans cela, un `update` bloqué par RLS ne lèverait
+rien — il toucherait **zéro ligne**, et l'événement resterait à l'ancienne date
+pendant que la séance a bougé. C'est précisément le silence qu'on cherche à
+supprimer.
+**Ce que cela a fait apparaître :** `attendance_write` cadrait le JOUEUR et le
+rôle, mais pas l'ÉVÉNEMENT. Un coach pouvait rattacher la présence d'un de ses
+joueurs à un entraînement d'une autre académie — invisible chez le voisin, mais
+compté dans nos statistiques. `owns_event()` ferme ce chemin, et la politique
+reprend la forme d'ADR-23.
+**Et la leçon d'ADR-23, pour la troisième fois :** `events` et `attendance`
+étaient VIDES dans le jeu de démonstration. « Une autre académie ne voit aucune
+présence » aurait été vrai avec une politique grande ouverte. Les deux tables
+sont désormais peuplées — vingt présences, les cinq statuts, et un événement
+appartenant à un concurrent pour que le contrôle de cloisonnement ait une cible.
+
 ---
 
 ## Les 3 décisions tranchées par le fondateur

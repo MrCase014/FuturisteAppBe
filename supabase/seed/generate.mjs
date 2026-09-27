@@ -372,6 +372,16 @@ values (${q(uuid('ag:autre:U11'))}, ${q(OTHER_ACADEMY)}, 'U11', 'U11 (autre acad
 insert into teams (id, academy_id, age_group_id, name, season, gender)
 values (${q(uuid('team:autre'))}, ${q(OTHER_ACADEMY)}, ${q(uuid('ag:autre:U11'))},
         'Équipe d''une autre académie', ${q(SEASON)}, 'MIXED');
+
+-- Un entraînement au calendrier de l'autre académie. Sans lui, « une autre
+-- académie ne voit aucun de nos événements » serait vrai parce qu'elle n'en a
+-- AUCUN à voir — le contrôle passerait faute d'occasion. Avec lui, il prouve
+-- ce qu'il annonce : chacun voit le sien, personne ne voit celui de l'autre.
+-- Il sert aussi de cible : sans événement appartenant à un concurrent, on ne
+-- peut pas vérifier qu'un coach n'y rattache pas la présence de son joueur.
+insert into events (id, academy_id, team_id, type, title, starts_at)
+values (${q(uuid('ev:autre'))}, ${q(OTHER_ACADEMY)}, ${q(uuid('team:autre'))},
+        'TRAINING', 'Entraînement d''une autre académie', '2026-10-03 16:00:00+00');
 `;
 
 writeFileSync(join(here, '03_people.sql'), sql);
@@ -576,8 +586,63 @@ values (${q(uuid('tpl:u11'))}, ${q(ACADEMY)}, ${q('Séance type U11 · occupatio
   ${q(uuid('ag:U11'))}, ${q('Occupation des espaces')},
   ${q(JSON.stringify(TEMPLATE_BLOCKS))}::jsonb, ${q(uuid('u:coach1'))});\n`;
 
+// ── Présences de démonstration ──────────────────────────────────────────────
+//
+// `attendance` pointe vers `events`, et le déclencheur `training_sessions_mirror_event`
+// vient de créer l'événement de chaque séance ci-dessus. On le retrouve par
+// `session_id` : le générateur n'a pas à inventer un identifiant que le schéma
+// produit déjà.
+//
+// POURQUOI CES LIGNES EXISTENT
+//
+// Sans elles, `attendance` reste VIDE — et « une autre académie ne voit aucune
+// présence » serait vrai même avec une politique grande ouverte. Le contrôle
+// passerait faute d'occasion, pas grâce à la sécurité. C'est la troisième fois
+// que cette leçon se paie : une table sans données de démonstration est une
+// table sans contrôle.
+//
+// Les quatre statuts sont représentés à dessein. Un appel où tout le monde est
+// présent ne prouve rien : c'est le retard qui porte des minutes, l'absence qui
+// porte un motif, et la blessure qui doit s'accorder avec l'aptitude déclarée.
+// Aucune donnée réelle d'enfant ici — ces enfants n'existent pas.
+const ATTENDANCE_OVERRIDES = {
+  // Séance U11 (joueurs 0 à 9).
+  0: ['LATE', 7, null],
+  1: ['ABSENT_EXCUSED', 0, 'Rendez-vous médical, la famille a prévenu la veille.'],
+  // Le joueur 2 est déclaré UNFIT dans 03_people : les deux tables s'accordent.
+  2: ['INJURED', 0, 'Cheville, indisponible jusqu’à réévaluation.'],
+  // Séance U13 (joueurs 10 à 19).
+  11: ['LATE', 3, null],
+  12: ['ABSENT_UNEXCUSED', 0, null],
+};
+
+const attendanceRows = [];
+for (const session of DEMO_SESSIONS) {
+  const from = session.team === 'teamU11' ? 0 : 10;
+  for (let i = from; i < from + 10; i += 1) {
+    const [status, late, reason] = ATTENDANCE_OVERRIDES[i] ?? ['PRESENT', 0, null];
+    attendanceRows.push(`  (${q(uuid('att:' + session.key + ':' + i))},
+   (select id from events where session_id = ${q(uuid(session.key))}),
+   ${q(players[i].id)}, ${q(status)}, ${late}, ${reason ? q(reason) : 'null'},
+   ${q(uuid('u:' + session.coach))}, ${q(session.scheduledAt)},
+   ${q(uuid('cgi:att:' + session.key + ':' + i))})`);
+  }
+}
+
+sql += `
+-- L'appel des deux séances. L'événement est retrouvé par session_id : c'est le
+-- déclencheur du schéma qui l'a créé, pas ce script.
+--
+-- client_generated_id est renseigné parce que c'est ainsi que la file hors
+-- ligne écrit : l'identifiant est tiré par le téléphone AVANT tout réseau, et
+-- c'est lui qui rend un renvoi inoffensif. Un jeu de démonstration qui
+-- l'omettrait montrerait une écriture que l'application ne fait jamais.
+insert into attendance (id, event_id, player_id, status, minutes_late, reason,
+  recorded_by, recorded_at, client_generated_id) values\n`;
+sql += attendanceRows.join(',\n') + ';\n';
+
 writeFileSync(join(here, '06_sessions.sql'), sql);
 
 console.log(
-  `seed généré — ${domains.length} domaines, ${compRows.length} compétences, ${players.length} joueurs, ${exercises.length} exercices, ${diagrams.length} schémas, ${Object.values(methodology.byAgeGroup).flat().length} sections de méthodologie, ${DEMO_SESSIONS.length} séances, 1 modèle, 6 fichiers + amorçage production.`,
+  `seed généré — ${domains.length} domaines, ${compRows.length} compétences, ${players.length} joueurs, ${exercises.length} exercices, ${diagrams.length} schémas, ${Object.values(methodology.byAgeGroup).flat().length} sections de méthodologie, ${DEMO_SESSIONS.length} séances, 1 modèle, ${attendanceRows.length} présences, 6 fichiers + amorçage production.`,
 );

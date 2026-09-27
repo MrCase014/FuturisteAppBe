@@ -725,7 +725,7 @@ export interface Database {
           {
             foreignKeyName: 'events_session_id_fkey';
             columns: ['session_id'];
-            isOneToOne: false;
+            isOneToOne: true;
             referencedRelation: 'training_sessions';
             referencedColumns: ['id'];
           },

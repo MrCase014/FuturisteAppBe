@@ -126,3 +126,13 @@ values ('a0306e37-bd06-4098-bebc-72a559f85a11', '3c7171ab-5133-4d6c-acd8-1d57244
 insert into teams (id, academy_id, age_group_id, name, season, gender)
 values ('8aa84c87-2523-45a0-9891-265dc25e84f5', '3c7171ab-5133-4d6c-acd8-1d57244eda02', 'a0306e37-bd06-4098-bebc-72a559f85a11',
         'Équipe d''une autre académie', '2026-2027', 'MIXED');
+
+-- Un entraînement au calendrier de l'autre académie. Sans lui, « une autre
+-- académie ne voit aucun de nos événements » serait vrai parce qu'elle n'en a
+-- AUCUN à voir — le contrôle passerait faute d'occasion. Avec lui, il prouve
+-- ce qu'il annonce : chacun voit le sien, personne ne voit celui de l'autre.
+-- Il sert aussi de cible : sans événement appartenant à un concurrent, on ne
+-- peut pas vérifier qu'un coach n'y rattache pas la présence de son joueur.
+insert into events (id, academy_id, team_id, type, title, starts_at)
+values ('4695a8c9-4cfc-45a9-ad17-d281a22238eb', '3c7171ab-5133-4d6c-acd8-1d57244eda02', '8aa84c87-2523-45a0-9891-265dc25e84f5',
+        'TRAINING', 'Entraînement d''une autre académie', '2026-10-03 16:00:00+00');

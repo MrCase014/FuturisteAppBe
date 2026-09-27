@@ -24,7 +24,7 @@ propriété de **FUTURISTE ACADÉMIE FC**.
 
 ```
 44 tables · 6 vues · 16 enums
-129 contrôles de sécurité RLS
+157 contrôles de sécurité RLS
 367 tests unitaires
 6 paquets : core · diagrams · i18n · ui · supabase · web
 ```
@@ -53,8 +53,8 @@ pnpm build       # compile le web et prépare le mobile
 pnpm --filter @futuriste/ui tokens   # régénère theme.css après un changement de palette
 
 # Base de données (sans Docker)
-pnpm db:reset          # crée la base, applique les 26 migrations, charge la démo
-pnpm db:test           # 🔒 joue les 12 tests de sécurité (129 contrôles)
+pnpm db:reset          # crée la base, applique les 27 migrations, charge la démo
+pnpm db:test           # 🔒 joue les 12 tests de sécurité (157 contrôles)
 pnpm db:types          # régénère les types TypeScript depuis le schéma
 pnpm db:seed:generate  # régénère le seed depuis packages/core
 ```
@@ -93,13 +93,13 @@ Ce que vous voyez est ce qui sera codé.
 | Livrable | État | Vérification |
 |---|:---:|---|
 | 44 tables, 16 types énumérés | ✅ | `pnpm db:reset` |
-| Fonctions d'aide à la sécurité | ✅ | 24 fonctions dans le schéma `futuriste` |
+| Fonctions d’aide à la sécurité | ✅ | 30 fonctions dans le schéma `futuriste` |
 | **91 politiques RLS** | ✅ | aucune table sans RLS, aucune sans politique |
 | Privilèges explicites | ✅ | `anon` ne lit rien, `authenticated` ne supprime rien |
 | 6 vues de tableau de bord | ✅ | calcul dans la base, pas dans le téléphone |
 | Données de démonstration fictives | ✅ | générées depuis `packages/core` |
 | Types TypeScript | ✅ | 2 800 lignes générées depuis le schéma |
-| **🔒 Les 12 tests de sécurité** | ✅ | **129 contrôles au vert** |
+| **🔒 Les 12 tests de sécurité** | ✅ | **157 contrôles au vert** |
 
 ### Phase 2b — Authentification
 

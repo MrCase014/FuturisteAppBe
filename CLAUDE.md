@@ -32,7 +32,7 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 
 ```
 44 tables · 6 vues · 16 enums
-129 contrôles de sécurité RLS    (pnpm db:test)
+157 contrôles de sécurité RLS    (pnpm db:test)
 367 tests unitaires              (pnpm test)
 23 tâches turbo                  (lint typecheck test build)
 6 paquets                        core · diagrams · i18n · supabase · ui · web
@@ -59,7 +59,7 @@ Dans cet ordre. Aucune exception : un contrôle rouge bloque la livraison.
 pnpm install                                  # jamais npm — voir règle 7
 pnpm db:reset                                 # base locale + schéma + démo
 pnpm db:types                                 # types générés depuis la base
-pnpm db:test                                  # 129 contrôles de sécurité
+pnpm db:test                                  # 157 contrôles de sécurité
 pnpm turbo run lint typecheck test build      # 23 tâches
 pnpm format:check                             # ou pnpm format pour corriger
 ```
@@ -324,9 +324,46 @@ l'intérieur. Deux règles en découlent :
   ressemble à une règle.
 - **Une table sans données de démonstration est une table sans contrôle.** Deux
   séances sont entrées dans le jeu de démonstration pour que les contrôles 27
-  et 28 existent. Pour les tables encore vides — présences, badges, défis,
-  matchs — un invariant STRUCTUREL prend le relais : il refuse qu'une de ces
-  politiques se limite à la direction.
+  et 28 existent ; vingt présences et un événement voisin pour que le 31
+  existe. Pour les tables encore vides — badges, défis, matchs — un invariant
+  STRUCTUREL prend le relais : il refuse qu'une de ces politiques se limite à
+  la direction.
+
+---
+
+## UNE RÈGLE QUE TOUT ÉCRIVAIN DOIT RESPECTER VIT DANS LE SCHÉMA
+
+Leçon payée le 27/09, sur la phase 6 tout juste livrée.
+
+`attendance.event_id` pointe vers `events`, jamais vers `training_sessions`.
+Or **rien ne créait l'événement d'une séance**. Conséquence : le coach ouvre sa
+séance de jeudi, appuie sur « faire l'appel », et il n'y a rien à quoi rattacher
+les présences. Aucune erreur en base, aucune alerte — juste une fonctionnalité
+qui n'existe pas, et qu'il aurait découverte au bord du terrain.
+
+Le premier réflexe était d'ajouter l'insertion dans `createSession` et
+`duplicateSession`. C'est le mauvais endroit. Une séance naît aujourd'hui par
+deux chemins, demain par un import, par la file hors ligne, par un écran qu'on
+n'a pas encore dessiné — **le premier qui oublie relivre le défaut**.
+
+D'où la règle :
+
+> Si une contrainte doit tenir pour TOUS les écrivains, y compris ceux qui
+> n'existent pas encore, elle appartient au SCHÉMA — déclencheur, index,
+> contrainte — et pas à l'application.
+
+Trois précisions qui comptent :
+
+- **Le déclencheur est `security definer`.** Le miroir n'est pas l'écriture d'un
+  utilisateur : le droit a déjà été vérifié par `training_sessions_write`. Sans
+  cela, un `update` bloqué par RLS ne lèverait rien — il toucherait zéro ligne,
+  et l'événement resterait à l'ancienne date pendant que la séance a bougé.
+- **Un index unique vaut mieux qu'une intention.** `events_one_per_session_idx`
+  rend impossible ce qui serait autrement rare : deux événements pour une séance
+  donneraient deux appels, donc des statistiques fausses.
+- **Fermer un trou en révèle un autre.** En cadrant l'événement, `attendance_write`
+  s'est révélée ne cadrer que le JOUEUR : un coach pouvait pointer un de ses
+  joueurs sur l'entraînement d'une autre académie. `owns_event()` le ferme.
 
 ---
 
@@ -564,7 +601,7 @@ pnpm dev             site web en développement
 pnpm dev:mobile      application mobile (Expo)
 pnpm db:reset        base locale : schéma + données de démonstration
 pnpm db:types        régénérer packages/supabase/database.types.ts
-pnpm db:test         129 contrôles de sécurité RLS
+pnpm db:test         157 contrôles de sécurité RLS
 pnpm test            367 tests unitaires
 pnpm format          corriger le formatage
 ```
