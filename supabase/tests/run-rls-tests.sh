@@ -610,6 +610,61 @@ check 28 "Un parent ne note pas la progression de son enfant" "0" \
   "$(ecriture "$PARENT_A" "insert into player_goal_checkins (goal_id, rating, created_by)
      values ('$GOAL_COACH1', 5, '$PARENT_A')")"
 
+# 29 · MODÈLES DE SÉANCE (6.7). Un modèle appartient à l'ACADÉMIE, pas à son
+#      auteur : c'est le patrimoine pédagogique du club, et c'est ce qui fait
+#      qu'un coach arrivé en septembre n'a pas à tout réinventer. Il se lit
+#      donc par tous, et s'écrit par ceux qui entraînent.
+BLOCS='[{"phase":"ACCUEIL","durationMin":10,"exerciseId":null},
+        {"phase":"JEU_REDUIT","durationMin":20,"exerciseId":null},
+        {"phase":"RETOUR_CALME","durationMin":5,"exerciseId":null}]'
+
+modele() { # $1 = acteur ; $2 = académie
+  ecriture "$1" "insert into session_templates (academy_id, name, blocks, created_by)
+     values ('$2', 'Modèle de contrôle', '$BLOCS'::jsonb, $( [ -n "$1" ] && echo "'$1'" || echo 'null' ))"
+}
+
+check 29 "Un coach enregistre un modèle pour son académie" "1" \
+  "$(modele "$COACH1" "$DIRECTOR_ACADEMY")"
+check 29 "Il n'en dépose pas un chez l'académie voisine" "0" \
+  "$(modele "$COACH1" "$OTHER_ACADEMY")"
+check 29 "La direction aussi enregistre des modèles" "1" \
+  "$(modele "$DIRECTOR" "$DIRECTOR_ACADEMY")"
+check 29 "Un parent n'écrit pas de modèle" "0" \
+  "$(modele "$PARENT_A" "$DIRECTOR_ACADEMY")"
+check 29 "Un joueur non plus" "0" \
+  "$(modele "$PLAYER" "$DIRECTOR_ACADEMY")"
+check 29 "Le médecin non plus" "0" \
+  "$(modele "$DOCTOR" "$DIRECTOR_ACADEMY")"
+check 29 "Un visiteur non authentifié encore moins" "0" \
+  "$(modele "" "$DIRECTOR_ACADEMY")"
+
+# Lecture : un modèle est un bien commun de l'académie. Le parent le voit
+# aussi — il n'y a rien de personnel dans un déroulé de séance — mais jamais
+# celui du club d'à côté.
+check 29 "Le coach lit le modèle de son académie" "1" \
+  "$(as_user "$COACH1" 'select count(*) from session_templates;')"
+check 29 "Le parent aussi : un déroulé de séance n'a rien de personnel" "1" \
+  "$(as_user "$PARENT_A" 'select count(*) from session_templates;')"
+check 29 "Une autre académie ne voit aucun modèle" "0" \
+  "$(as_user "$OUTSIDER" 'select count(*) from session_templates;')"
+check 29 "Un visiteur non authentifié non plus" "0" \
+  "$(as_user "" 'select count(*) from session_templates;')"
+
+# 30 · DUPLIQUER UNE SÉANCE (6.7). La copie passe par les mêmes politiques que
+#      la création — ce contrôle vérifie qu'aucun raccourci ne les contourne.
+check 30 "Le coach copie SA séance" "1" \
+  "$(ecriture "$COACH1" "insert into training_sessions
+     (academy_id, team_id, age_group_id, coach_id, title, scheduled_at, duration_min, origin)
+     select academy_id, team_id, age_group_id, '$COACH1', title || ' (copie)',
+            scheduled_at + interval '7 days', duration_min, origin
+     from training_sessions where id = '$SEANCE_U11'")"
+check 30 "Il ne copie pas celle du coach 2 vers SON équipe" "0" \
+  "$(ecriture "$COACH1" "insert into training_sessions
+     (academy_id, team_id, age_group_id, coach_id, title, scheduled_at, duration_min, origin)
+     select academy_id, team_id, age_group_id, '$COACH1', title || ' (copie)',
+            scheduled_at + interval '7 days', duration_min, origin
+     from training_sessions where id = '$SEANCE_U13'")"
+
 # Contrôle de complétude : aucune table ne doit échapper à RLS.
 check "R" "Aucune table sans RLS" "0" \
   "$("${PSQL[@]}" -c "select count(*) from pg_tables

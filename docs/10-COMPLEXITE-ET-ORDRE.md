@@ -151,7 +151,7 @@ en moins de 20 secondes et comprend le schéma en moins de 10 secondes.
 6.4  Timeline 7 phases, réordonnable  ← ✅ livré
 6.5  Retirer / remplacer un exercice  ← ✅ livré
 6.6  Adapter à l'effectif réel  ← ✅ livré
-6.7  Enregistrer, dupliquer, modèles
+6.7  Enregistrer, dupliquer, modèles  ← ✅ livré
 ```
 **Test :** créer une séance U11 90 min en moins de 6 minutes.
 **Le moteur doit remonter les exercices liés aux objectifs actifs du groupe.**

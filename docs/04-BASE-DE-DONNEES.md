@@ -7,7 +7,7 @@
 
 > ✅ **Appliqué et vérifié** : 26 migrations, 91 politiques RLS, 6 vues,
 > 16 types énumérés, 24 fonctions de sécurité. Les 12 tests de sécurité
-> passent — 116 contrôles (`pnpm db:test`). Le schéma décrit ci-dessous est
+> passent — 129 contrôles (`pnpm db:test`). Le schéma décrit ci-dessous est
 > celui qui tourne.
 
 ---

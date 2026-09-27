@@ -78,7 +78,14 @@ export interface SessionPlanRequest {
 
 /** Pourquoi CET exercice a été proposé — affiché sous le bloc. */
 export type PlanReason =
-  'OBJECTIF' | 'NIVEAU' | 'DUREE' | 'UN_SEUL_ATELIER' | 'NOUVEAU' | 'SEUL_CANDIDAT';
+  | 'OBJECTIF'
+  | 'NIVEAU'
+  | 'DUREE'
+  | 'UN_SEUL_ATELIER'
+  | 'NOUVEAU'
+  | 'SEUL_CANDIDAT'
+  /** Le coach a choisi un modèle : on lui rend SON déroulé, pas un autre. */
+  | 'MODELE';
 
 export const PLAN_REASON_LABEL: Record<PlanReason, string> = {
   OBJECTIF: 'travaille un objectif actif du groupe',
@@ -87,6 +94,7 @@ export const PLAN_REASON_LABEL: Record<PlanReason, string> = {
   UN_SEUL_ATELIER: 'tout le groupe en un seul atelier',
   NOUVEAU: 'pas fait récemment',
   SEUL_CANDIDAT: 'seul exercice disponible pour cette phase',
+  MODELE: 'vient du modèle',
 };
 
 export interface PlannedBlock extends TimelineBlock {

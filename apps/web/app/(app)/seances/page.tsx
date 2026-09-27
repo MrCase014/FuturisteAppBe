@@ -46,12 +46,20 @@ export default async function SeancesPage() {
           </p>
         </div>
         {peutPreparer && (
-          <Link
-            href="/seances/nouvelle"
-            className="inline-flex min-h-touch items-center rounded-md bg-futuriste-violet px-4 text-body font-medium text-white"
-          >
-            Préparer une séance
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/seances/modeles"
+              className="inline-flex min-h-touch items-center rounded-md bg-surface-raised px-4 text-body font-medium text-content-primary"
+            >
+              Modèles
+            </Link>
+            <Link
+              href="/seances/nouvelle"
+              className="inline-flex min-h-touch items-center rounded-md bg-futuriste-violet px-4 text-body font-medium text-white"
+            >
+              Préparer une séance
+            </Link>
+          </div>
         )}
       </div>
 

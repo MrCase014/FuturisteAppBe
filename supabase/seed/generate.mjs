@@ -549,6 +549,20 @@ for (const session of DEMO_SESSIONS) {
   }
 }
 
+// Un modèle de démonstration. Sans lui, les contrôles de lecture sur
+// `session_templates` seraient VIDES DE SENS : la table étant vide,
+// « une autre académie n'en voit aucun » serait vrai pour tout le monde, y
+// compris avec une politique grande ouverte. Une table sans données de
+// démonstration est une table sans contrôle.
+const TEMPLATE_BLOCKS = PHASE_RATIOS.map(([phase, ratio]) => {
+  const match = exercises.find((e) => e.phase === phase && e.ageGroups.includes('U11'));
+  return {
+    phase,
+    durationMin: Math.round(90 * ratio),
+    exerciseId: match ? uuid('ex:' + match.slug) : null,
+  };
+});
+
 sql = header('06 · Séances de démonstration');
 sql += `\ninsert into training_sessions (id, academy_id, team_id, age_group_id, coach_id,
   title, scheduled_at, duration_min, theme, players_expected, status, origin, created_by) values\n`;
@@ -556,8 +570,14 @@ sql += sessionRows.join(',\n') + ';\n\n';
 sql += `insert into session_exercises (id, session_id, exercise_id, phase, order_index,
   duration_min, custom_title) values\n`;
 sql += blockRows.join(',\n') + ';\n';
+sql += `\n-- Un modèle : le déroulé d'une séance, sans équipe ni date.\n`;
+sql += `insert into session_templates (id, academy_id, name, age_group_id, theme, blocks, created_by)
+values (${q(uuid('tpl:u11'))}, ${q(ACADEMY)}, ${q('Séance type U11 · occupation des espaces')},
+  ${q(uuid('ag:U11'))}, ${q('Occupation des espaces')},
+  ${q(JSON.stringify(TEMPLATE_BLOCKS))}::jsonb, ${q(uuid('u:coach1'))});\n`;
+
 writeFileSync(join(here, '06_sessions.sql'), sql);
 
 console.log(
-  `seed généré — ${domains.length} domaines, ${compRows.length} compétences, ${players.length} joueurs, ${exercises.length} exercices, ${diagrams.length} schémas, ${Object.values(methodology.byAgeGroup).flat().length} sections de méthodologie, ${DEMO_SESSIONS.length} séances, 6 fichiers + amorçage production.`,
+  `seed généré — ${domains.length} domaines, ${compRows.length} compétences, ${players.length} joueurs, ${exercises.length} exercices, ${diagrams.length} schémas, ${Object.values(methodology.byAgeGroup).flat().length} sections de méthodologie, ${DEMO_SESSIONS.length} séances, 1 modèle, 6 fichiers + amorçage production.`,
 );
