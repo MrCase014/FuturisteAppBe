@@ -23,7 +23,7 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 | 4 | Joueurs, équipes, catégories, coachs | ✅ fusionnée (PR #5) |
 | 4b | Personnel soignant et confidentialité médicale | ⏳ en revue (PR #6) |
 | 5 | Bibliothèque d'exercices | ⏳ 5.1, 5.2, 5.3, 5.5, 5.6, 5.7, 5.8, 5.9 livrés · reste 5.4 (vidéos), qui attend l'espace de stockage Supabase |
-| 6 | Session Studio | ⏳ en cours — 6.1 (moteur), 6.2 (tests) et 6.3 (assistant + enregistrement) livrés · reste la timeline réordonnable (6.4-6.7) |
+| 6 | Session Studio | ⏳ en cours — 6.1 à 6.6 livrés (moteur, tests, assistant, timeline ajustable) · reste 6.7 (modèles de séance) |
 
 `main` contient tout. Les branches de phase fusionnées ne servent plus.
 
@@ -32,7 +32,7 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 ```
 44 tables · 6 vues · 16 enums
 116 contrôles de sécurité RLS    (pnpm db:test)
-285 tests unitaires              (pnpm test)
+327 tests unitaires              (pnpm test)
 23 tâches turbo                  (lint typecheck test build)
 6 paquets                        core · diagrams · i18n · supabase · ui · web
 6 illustrations                  (apps/web/components/illustrations)
@@ -235,6 +235,29 @@ quelqu'un parce qu'on n'avait pas anticipé son besoin.
 
 ---
 
+## UN TEST QUI REGARDE À CÔTÉ EST PIRE QU'AUCUN TEST
+
+Trois fois en deux jours, un test au vert ne vérifiait rien :
+
+- une assertion qui filtrait les règles bloquantes AVANT de vérifier qu'il n'y
+  en avait pas — vraie par construction ;
+- une écriture qui échouait sur une contrainte d'unicité, donc « refusée »
+  pour une raison sans rapport avec le droit testé ;
+- « annuler défait un changement d'effectif », qui regardait les ateliers et
+  non l'effectif — et ne voyait donc pas que le bouton ne rendait pas le
+  chiffre.
+
+Les trois ont été trouvés en REGARDANT L'ÉCRAN, jamais par la suite de tests.
+D'où deux réflexes, avant d'écrire une assertion :
+
+1. **Le test peut-il échouer ?** Saboter le code qu'il couvre doit le faire
+   tomber. Un sabotage qui ne casse rien signale soit un test creux, soit du
+   code mort — les deux valent d'être corrigés.
+2. **Mesure-t-il ce qu'il prétend ?** « Le coach peut écrire » doit échouer
+   parce que le DROIT manque, pas parce que la ligne existait déjà.
+
+---
+
 ## UNE POLITIQUE RLS NE SE RÉÉCRIT PAS AU CHERCHER-REMPLACER
 
 Leçon payée le 27/09, sur neuf politiques à la fois.
@@ -303,8 +326,20 @@ un rondo prévu pour 10 se monte en trois carrés quand 24 sont présents, et le
 plan annonce le nombre d'ateliers. Sans cela, le coach arrive au terrain avec
 de quoi en monter un seul.
 
-À voir sans compte : **/maquettes/session-studio-moteur** — le vrai moteur sur
-la vraie bibliothèque, trous compris.
+À voir sans compte : **/maquettes/session-studio-moteur** (ce que le moteur
+propose) et **/maquettes/seance-ajustable** (ce que le coach en fait). Les deux
+font tourner le vrai code sur la vraie bibliothèque, trous compris.
+
+L'ajustement a son propre moteur, `sessions/edit.ts`, et la même règle que
+l'éditeur de schémas : un geste qui produirait une séance INTERDITE par la
+méthodologie est refusé AU MOMENT DU GESTE, avec la phrase de la règle.
+Laisser réorganiser librement puis refuser l'enregistrement à la fin serait
+cruel — le coach aurait tout défait sans savoir quel geste posait problème.
+
+Et ce que le navigateur renvoie est RELU par `checkSubmission()` : à partir du
+moment où le coach ajuste, on ne peut plus recalculer la séance pour ignorer
+ce qu'il envoie. Les règles de l'écran et celles de l'écriture sont les mêmes
+fonctions — écrites deux fois, c'est la version permissive qui gagnerait.
 
 ---
 
@@ -488,6 +523,6 @@ pnpm dev:mobile      application mobile (Expo)
 pnpm db:reset        base locale : schéma + données de démonstration
 pnpm db:types        régénérer packages/supabase/database.types.ts
 pnpm db:test         116 contrôles de sécurité RLS
-pnpm test            285 tests unitaires
+pnpm test            327 tests unitaires
 pnpm format          corriger le formatage
 ```

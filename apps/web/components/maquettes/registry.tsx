@@ -12,6 +12,7 @@ import { SchemasTactiques } from './screens-schemas';
 import { MethodologieParAge } from './screens-methodologie';
 import { EditeurDeSchemas } from './screens-editeur';
 import { SessionStudioPropose } from './screens-session-studio';
+import { SeanceAjustable } from './screens-timeline';
 
 export interface MaquetteEntry {
   slug: string;
@@ -132,6 +133,15 @@ export const MAQUETTES: readonly MaquetteEntry[] = [
     phase: 6,
     note: 'Le vrai moteur, sur la vraie bibliothèque : chaque exercice porte la raison de son choix, et un trou reste un trou.',
     render: () => <SessionStudioPropose />,
+  },
+  {
+    slug: 'seance-ajustable',
+    ref: 'C20',
+    title: 'La séance qu’on ajuste',
+    role: 'Coach',
+    phase: 6,
+    note: 'Déplacer, remplacer, raccourcir — et ce qui romprait une règle de la méthodologie est refusé sur-le-champ, avec la raison.',
+    render: () => <SeanceAjustable />,
   },
   {
     slug: 'espace-joueur',
