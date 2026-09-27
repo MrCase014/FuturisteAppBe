@@ -23,7 +23,7 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 | 4 | Joueurs, équipes, catégories, coachs | ✅ fusionnée (PR #5) |
 | 4b | Personnel soignant et confidentialité médicale | ⏳ en revue (PR #6) |
 | 5 | Bibliothèque d'exercices | ⏳ 5.1, 5.2, 5.3, 5.5, 5.6, 5.7, 5.8, 5.9 livrés · reste 5.4 (vidéos), qui attend l'espace de stockage Supabase |
-| 6 | Session Studio | ⏳ en cours — 6.1 (moteur) et 6.2 (tests) livrés · reste l'assistant et la timeline |
+| 6 | Session Studio | ⏳ en cours — 6.1 (moteur), 6.2 (tests) et 6.3 (assistant + enregistrement) livrés · reste la timeline réordonnable (6.4-6.7) |
 
 `main` contient tout. Les branches de phase fusionnées ne servent plus.
 
@@ -31,7 +31,7 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 
 ```
 44 tables · 6 vues · 16 enums
-90 contrôles de sécurité RLS     (pnpm db:test)
+116 contrôles de sécurité RLS    (pnpm db:test)
 285 tests unitaires              (pnpm test)
 23 tâches turbo                  (lint typecheck test build)
 6 paquets                        core · diagrams · i18n · supabase · ui · web
@@ -40,8 +40,9 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 
 Jeu de démonstration : 2 académies, 20 joueurs, 3 coachs, 3 équipes (dont 1 chez un concurrent, pour les tests de cloisonnement),
 7 catégories, 4 évaluations, 3 objectifs, 22 exercices, 3 schémas tactiques,
-20 sections de méthodologie, 1 médecin, 1 kiné. **0 séance, 0 présence** — normal,
-la prise de présence arrive en phase 7.
+2 séances,
+20 sections de méthodologie, 1 médecin, 1 kiné. **0 présence** — normal, la
+prise de présence arrive en phase 7.
 
 Sous RLS, le directeur voit **20 joueurs / 2 équipes**, le coach 1 en voit
 **10 / 1**. C'est le test de recette le plus rapide : si les deux voient la
@@ -57,7 +58,7 @@ Dans cet ordre. Aucune exception : un contrôle rouge bloque la livraison.
 pnpm install                                  # jamais npm — voir règle 7
 pnpm db:reset                                 # base locale + schéma + démo
 pnpm db:types                                 # types générés depuis la base
-pnpm db:test                                  # 90 contrôles de sécurité
+pnpm db:test                                  # 116 contrôles de sécurité
 pnpm turbo run lint typecheck test build      # 23 tâches
 pnpm format:check                             # ou pnpm format pour corriger
 ```
@@ -231,6 +232,44 @@ ne lit.
 Une section portant une clé inconnue — ajoutée à la main en base — se range
 à la fin plutôt que de disparaître. On ne perd jamais le travail de
 quelqu'un parce qu'on n'avait pas anticipé son besoin.
+
+---
+
+## UNE POLITIQUE RLS NE SE RÉÉCRIT PAS AU CHERCHER-REMPLACER
+
+Leçon payée le 27/09, sur neuf politiques à la fois.
+
+En fermant une vraie faille — quinze politiques citaient `is_staff()` sans
+nommer l'académie — la migration du 19/09 a transformé
+
+```
+is_staff() OR coaches_player(...)     →     is_staff() AND owns_player(...)
+```
+
+La condition d'académie a REMPLACÉ la branche du coach au lieu de s'y ajouter.
+Un coach ne pouvait plus faire l'appel, saisir ses évaluations, valider un
+objectif, décerner un badge, ni enregistrer sa séance. Huit jours sans que rien
+ne le signale : ces tables servent aux phases 7, 8 et 10, et **aucune n'avait
+de contrôle de sécurité**.
+
+La forme correcte, à reprendre partout :
+
+```
+owns_X(...)  AND  ( is_staff()  OR  <branche légitime> )
+ cloisonnement       direction        le coach concerné
+```
+
+Le cloisonnement s'applique à TOUT LE MONDE ; les rôles se lisent à
+l'intérieur. Deux règles en découlent :
+
+- **Un correctif de sécurité se vérifie aussi par ce qu'il ne doit PAS casser.**
+  Resserrer un droit sans mesurer ce qui passait avant produit une panne qui
+  ressemble à une règle.
+- **Une table sans données de démonstration est une table sans contrôle.** Deux
+  séances sont entrées dans le jeu de démonstration pour que les contrôles 27
+  et 28 existent. Pour les tables encore vides — présences, badges, défis,
+  matchs — un invariant STRUCTUREL prend le relais : il refuse qu'une de ces
+  politiques se limite à la direction.
 
 ---
 
@@ -448,7 +487,7 @@ pnpm dev             site web en développement
 pnpm dev:mobile      application mobile (Expo)
 pnpm db:reset        base locale : schéma + données de démonstration
 pnpm db:types        régénérer packages/supabase/database.types.ts
-pnpm db:test         90 contrôles de sécurité RLS
+pnpm db:test         116 contrôles de sécurité RLS
 pnpm test            285 tests unitaires
 pnpm format          corriger le formatage
 ```
