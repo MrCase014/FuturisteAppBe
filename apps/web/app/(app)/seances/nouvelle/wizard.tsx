@@ -2,10 +2,19 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import type { AgeGroupCode, DomainCode, SessionPlan } from '@futuriste/core';
-import { PLAN_REASON_LABEL } from '@futuriste/core';
+import type {
+  AgeGroupCode,
+  DomainCode,
+  PlannableExercise,
+  SessionEditAction,
+  SessionEditState,
+  SessionPhase,
+  SessionPlan,
+} from '@futuriste/core';
+import { editStateFromPlan, sessionEditReducer } from '@futuriste/core';
 import type { TeamOption } from '@/lib/data/sessions';
 import { Alert, Card, SectionTitle } from '@/components/kit';
+import { TimelineEditor } from '@/components/sessions/timeline-editor';
 import { ActionButton, Chip, FieldRow } from '@/components/diagrams/editor-controls';
 import { createSession, previewSession, type SessionRequestInput } from './actions';
 
@@ -26,9 +35,6 @@ import { createSession, previewSession, type SessionRequestInput } from './actio
  */
 
 const ETAPES = ['L’équipe', 'L’objectif', 'L’effectif', 'La séance'] as const;
-
-/** Les raisons qui distinguent un choix ; les autres sont vraies partout. */
-const DISTINGUISHING = ['OBJECTIF', 'NIVEAU', 'SEUL_CANDIDAT', 'DUREE'] as const;
 
 function defaultDateTime(): string {
   const now = new Date();
@@ -52,6 +58,23 @@ export function SessionWizard({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [plan, setPlan] = useState<SessionPlan | null>(null);
+  const [alternatives, setAlternatives] = useState<
+    Partial<Record<SessionPhase, PlannableExercise[]>>
+  >({});
+  /**
+   * La séance en cours d'ajustement.
+   *
+   * Le moteur d'édition vit dans `packages/core` : ce composant ne décide de
+   * rien, il envoie des gestes. C'est ce qui permet de vérifier « retirer le
+   * retour au calme est refusé » sans ouvrir un navigateur.
+   *
+   * `useState` plutôt que `useReducer` parce que l'état n'existe pas avant
+   * l'aperçu : un `useReducer` demanderait un état initial factice, et une
+   * conversion de type pour faire croire qu'il est réel.
+   */
+  const [edit, setEdit] = useState<SessionEditState | null>(null);
+  const dispatch = (action: SessionEditAction) =>
+    setEdit((current) => (current ? sessionEditReducer(current, action) : current));
 
   const [teamId, setTeamId] = useState(teams[0]?.id ?? '');
   const [scheduledAt, setScheduledAt] = useState(defaultDateTime());
@@ -79,7 +102,11 @@ export function SessionWizard({
       const result = await previewSession(input());
       setError(result.error ?? null);
       setPlan(result.plan ?? null);
-      if (!result.error) setStep(3);
+      setAlternatives(result.alternatives ?? {});
+      if (result.plan) {
+        setEdit(editStateFromPlan(result.plan, { playersPresent, goalkeepersPresent }));
+        setStep(3);
+      }
     });
 
   const save = () =>
@@ -89,6 +116,12 @@ export function SessionWizard({
         // Un identifiant tiré une seule fois par tentative : deux appuis sur le
         // bouton portent le même, et la base n'en garde qu'un.
         clientGeneratedId: crypto.randomUUID(),
+        // La séance TELLE QUE LE COACH L'A AJUSTÉE. Le serveur la relit.
+        blocks: (edit?.blocks ?? []).map((block) => ({
+          phase: block.phase,
+          durationMin: block.durationMin,
+          exerciseId: block.exercise?.id ?? null,
+        })),
       });
       if (result.error) {
         setError(result.error);
@@ -265,65 +298,11 @@ export function SessionWizard({
         </Card>
       )}
 
-      {step === 3 && plan && (
+      {step === 3 && edit && (
         <div className="space-y-4">
-          <Card>
-            <div className="mb-3 flex items-baseline justify-between">
-              <SectionTitle>La séance proposée</SectionTitle>
-              <span className="text-small tabular-nums text-content-secondary">
-                {plan.plannedMin} min / {plan.durationMin} min
-              </span>
-            </div>
-            <ol className="space-y-2">
-              {plan.blocks.map((block, index) => (
-                <li
-                  key={block.phase}
-                  className={`rounded-md border p-3 ${
-                    block.exercise ? 'border-surface-border' : 'border-dashed border-status-warning'
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-futuriste-violet text-caption font-bold text-white">
-                      {index + 1}
-                    </span>
-                    <span className="w-14 shrink-0 text-right text-small tabular-nums text-content-secondary">
-                      {block.durationMin} min
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-caption uppercase tracking-wide text-content-muted">
-                        {block.labelFr}
-                      </p>
-                      {block.exercise ? (
-                        <>
-                          <p className="text-body text-content-primary">{block.exercise.name}</p>
-                          <p className="text-caption text-content-secondary">
-                            {block.exercise.objective}
-                          </p>
-                          <p className="mt-1 text-caption text-content-muted">
-                            {DISTINGUISHING.filter((r) => block.reasons.includes(r))
-                              .map((r) => PLAN_REASON_LABEL[r])
-                              .join(' · ') || 'convient à la phase et à l’effectif'}
-                            {block.groups > 1 && ` · ${block.groups} ateliers en parallèle`}
-                          </p>
-                        </>
-                      ) : (
-                        <p className="text-body text-content-secondary">
-                          Aucun exercice ne convient. Le bloc reste au programme : à vous de le
-                          mener, ou ajoutez un exercice à la bibliothèque.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </Card>
+          <TimelineEditor edit={edit} alternatives={alternatives} dispatch={dispatch} />
 
-          {plan.violations.length > 0 && (
-            <Alert tone="critical">{plan.violations.map((v) => v.messageFr).join(' ')}</Alert>
-          )}
-
-          {plan.unverified.length > 0 && (
+          {plan && plan.unverified.length > 0 && (
             <Card>
               <SectionTitle>Ce qui reste à votre vigilance</SectionTitle>
               <ul className="list-disc space-y-1 pl-5 text-small text-content-secondary">
@@ -335,7 +314,13 @@ export function SessionWizard({
           )}
 
           <div className="flex flex-wrap gap-2">
-            <ActionButton onClick={() => setStep(2)}>Changer l’effectif</ActionButton>
+            <ActionButton onClick={() => setStep(2)}>Retour</ActionButton>
+            <ActionButton
+              onClick={() => dispatch({ type: 'UNDO' })}
+              disabled={edit.past.length === 0}
+            >
+              ↶ Annuler
+            </ActionButton>
             <ActionButton variant="primary" disabled={pending} onClick={save}>
               {pending ? 'Enregistrement…' : 'Enregistrer la séance'}
             </ActionButton>

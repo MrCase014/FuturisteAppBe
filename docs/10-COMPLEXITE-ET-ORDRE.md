@@ -148,9 +148,9 @@ en moins de 20 secondes et comprend le schéma en moins de 10 secondes.
 6.1  Moteur de règles dans packages/core  ← ✅ livré (sessions/plan.ts)
 6.2  Tests du moteur (30 cas au minimum)  ← ✅ livré (44 cas)
 6.3  Assistant en 4 étapes  ← ✅ livré
-6.4  Timeline 7 phases, glisser-déposer
-6.5  Ajouter / retirer / remplacer un exercice
-6.6  Adapter à l'effectif réel
+6.4  Timeline 7 phases, réordonnable  ← ✅ livré
+6.5  Retirer / remplacer un exercice  ← ✅ livré
+6.6  Adapter à l'effectif réel  ← ✅ livré
 6.7  Enregistrer, dupliquer, modèles
 ```
 **Test :** créer une séance U11 90 min en moins de 6 minutes.

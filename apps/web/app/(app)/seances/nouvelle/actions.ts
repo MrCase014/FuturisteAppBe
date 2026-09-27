@@ -1,8 +1,15 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import type { AgeGroupCode, DomainCode, SessionPlan } from '@futuriste/core';
-import { isStaffRole, planSession } from '@futuriste/core';
+import type {
+  AgeGroupCode,
+  DomainCode,
+  PlannableExercise,
+  SessionPhase,
+  SessionPlan,
+  SubmittedBlock,
+} from '@futuriste/core';
+import { checkSubmission, isStaffRole, planSession } from '@futuriste/core';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { SUPABASE_UNAVAILABLE_MESSAGE } from '@/lib/supabase/config';
 import { getSessionProfile } from '@/lib/supabase/session';
@@ -22,6 +29,16 @@ export interface SessionRequestInput {
 export interface PlanResult {
   error?: string;
   plan?: SessionPlan;
+  /**
+   * Les autres exercices possibles, phase par phase.
+   *
+   * Envoyés AVEC le plan pour que le coach puisse remplacer un bloc sans
+   * repasser par le serveur : un aller-retour par changement d'avis rendrait
+   * l'écran poussif là où il doit être immédiat. Seuls ceux qui conviennent
+   * déjà à la catégorie et à l'effectif partent — la bibliothèque entière
+   * reste au chaud.
+   */
+  alternatives?: Partial<Record<SessionPhase, PlannableExercise[]>>;
 }
 
 export interface CreateResult {
@@ -86,15 +103,28 @@ export async function previewSession(input: SessionRequestInput): Promise<PlanRe
   if (!supabase) return { error: SUPABASE_UNAVAILABLE_MESSAGE };
 
   const exercises = await plannableExercises(supabase);
-  return {
-    plan: planSession(exercises, {
-      ageGroup: input.ageGroup,
-      durationMin: input.durationMin,
-      playersPresent: input.playersPresent,
-      goalkeepersPresent: input.goalkeepersPresent,
-      priorityDomains: input.priorityDomains,
-    }),
-  };
+  const plan = planSession(exercises, {
+    ageGroup: input.ageGroup,
+    durationMin: input.durationMin,
+    playersPresent: input.playersPresent,
+    goalkeepersPresent: input.goalkeepersPresent,
+    priorityDomains: input.priorityDomains,
+  });
+
+  const alternatives: Partial<Record<SessionPhase, PlannableExercise[]>> = {};
+  for (const block of plan.blocks) {
+    alternatives[block.phase] = exercises.filter(
+      (exercise) =>
+        exercise.defaultPhase === block.phase &&
+        exercise.isPublished &&
+        (exercise.ageGroupCodes.length === 0 || exercise.ageGroupCodes.includes(input.ageGroup)) &&
+        exercise.playersMin <= input.playersPresent &&
+        ((exercise.goalkeepers ?? 0) === 0 ||
+          (exercise.goalkeepers ?? 0) <= input.goalkeepersPresent),
+    );
+  }
+
+  return { plan, alternatives };
 }
 
 /**
@@ -111,7 +141,7 @@ export async function previewSession(input: SessionRequestInput): Promise<PlanRe
  * tienne quand deux requêtes arrivent en même temps.
  */
 export async function createSession(
-  input: SessionRequestInput & { clientGeneratedId: string },
+  input: SessionRequestInput & { clientGeneratedId: string; blocks: SubmittedBlock[] },
 ): Promise<CreateResult> {
   const profile = await getSessionProfile();
   if (!profile) return { error: 'Votre session a expiré. Reconnectez-vous.' };
@@ -125,22 +155,19 @@ export async function createSession(
   const supabase = await createSupabaseServerClient();
   if (!supabase) return { error: SUPABASE_UNAVAILABLE_MESSAGE };
 
+  // La séance arrive AJUSTÉE par le coach : on ne peut plus la recalculer pour
+  // ignorer ce qu'il a envoyé, il faut la RELIRE. `checkSubmission` applique
+  // exactement les règles de l'écran — écrites une fois, dans le paquet.
+  //
+  // La bibliothèque qu'on lui passe est celle que RLS a bien voulu servir :
+  // un identifiant venu d'ailleurs n'y est pas, et la séance est refusée.
   const exercises = await plannableExercises(supabase);
-  const plan = planSession(exercises, {
+  const submission = checkSubmission(input.blocks, exercises, {
     ageGroup: input.ageGroup,
-    durationMin: input.durationMin,
     playersPresent: input.playersPresent,
     goalkeepersPresent: input.goalkeepersPresent,
-    priorityDomains: input.priorityDomains,
   });
-
-  const blocking = plan.violations.filter((v) => v.severity === 'BLOCKING');
-  if (blocking.length > 0) {
-    // On refuse d'ENREGISTRER une séance qui viole une règle dure. Le coach
-    // peut toujours la préparer autrement ; il ne peut pas la ranger dans le
-    // dossier de l'académie comme si elle était conforme.
-    return { error: blocking.map((v) => v.messageFr).join(' ') };
-  }
+  if (!submission.ok) return { error: submission.problem };
 
   const { data: team } = await supabase
     .from('teams')
@@ -185,7 +212,7 @@ export async function createSession(
     return { error: 'Rien n’a été enregistré : l’écriture a été refusée pour cette équipe.' };
   }
 
-  const blocks = plan.blocks.map((block, index) => ({
+  const blocks = submission.blocks.map((block, index) => ({
     session_id: sessionId,
     exercise_id: block.exercise?.id ?? null,
     phase: block.phase,

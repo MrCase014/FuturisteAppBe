@@ -95,6 +95,7 @@ Légende support : 🖥️ web · 📱 mobile · 🖥️📱 les deux
 | C17 | Feuille de match | Composition, temps de jeu, événements | 📱 | 10 |
 | C18 | Rapport de match | Observations, statistiques, évaluations | 🖥️📱 | 10 |
 | C19 | **Éditeur de schémas** | Poser, déplacer, tracer, animer — au doigt | 📱💻 | 5 |
+| C20 | **Séance ajustable** | Déplacer, remplacer, raccourcir · refus motivé sur-le-champ | 🖥️📱 | 6 |
 
 ---
 
@@ -168,11 +169,11 @@ Cinq entrées maximum. Au-delà, on ne lit plus les libellés, on tape au hasard
 | 3 — Dashboards | D1, D26, C1 | 8 |
 | 4 — Joueurs & structure | D4-D14, C2-C5 | 23 |
 | 5 — Bibliothèque | D15-D20, C6, C7, C19 | 32 |
-| 6 — Séances | C8-C10, D23 | 36 |
-| 7 — Mode Terrain | C11, C12 | 38 |
-| 8 — Évaluations & joueur | C13-C15, D2, D21, D24, J1-J5, J7, J9, J10 | 51 |
-| 9 — Parents | D9, D10, D22, F1-F10, T1 | 65 |
-| 10 — Matchs & stats | C16-C18, D3, D25, J8, T2 | 72 |
-| 11 — PWA & mobile | J6 | 73 |
-| 12 — IA | T3 | 74 |
-| 13 — Vision | T4 | 75 |
+| 6 — Séances | C8-C10, C20, D23 | 37 |
+| 7 — Mode Terrain | C11, C12 | 39 |
+| 8 — Évaluations & joueur | C13-C15, D2, D21, D24, J1-J5, J7, J9, J10 | 52 |
+| 9 — Parents | D9, D10, D22, F1-F10, T1 | 66 |
+| 10 — Matchs & stats | C16-C18, D3, D25, J8, T2 | 73 |
+| 11 — PWA & mobile | J6 | 74 |
+| 12 — IA | T3 | 75 |
+| 13 — Vision | T4 | 76 |
