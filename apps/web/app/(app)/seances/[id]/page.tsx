@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { SESSION_PHASES } from '@futuriste/core';
+import { SESSION_PHASES, isStaffRole } from '@futuriste/core';
 import { Card, SectionTitle } from '@/components/kit';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { requireSessionProfile } from '@/lib/supabase/session';
 import { sessionDetail } from '@/lib/data/sessions';
+import { SessionActions } from './session-actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +19,7 @@ const PHASE_LABEL = new Map(SESSION_PHASES.map((p) => [p.phase, p.labelFr]));
  * séance, et le taire laisserait croire à un oubli plutôt qu'à un choix.
  */
 export default async function FicheSeancePage({ params }: { params: Promise<{ id: string }> }) {
-  await requireSessionProfile();
+  const profile = await requireSessionProfile();
   const supabase = await createSupabaseServerClient();
   if (!supabase) redirect('/connexion');
 
@@ -98,6 +99,14 @@ export default async function FicheSeancePage({ params }: { params: Promise<{ id
           ))}
         </ol>
       </Card>
+
+      {(isStaffRole(profile.role) || profile.role === 'COACH') && (
+        <SessionActions
+          sessionId={session.id}
+          title={session.title}
+          scheduledAt={session.scheduledAt}
+        />
+      )}
 
       {session.coachNotes && (
         <Card>

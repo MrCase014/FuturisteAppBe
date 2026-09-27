@@ -14,3 +14,4 @@ export * from './security/password';
 export * from './security/session-freshness';
 export * from './sessions/plan';
 export * from './sessions/edit';
+export * from './sessions/template';

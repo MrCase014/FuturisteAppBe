@@ -49,9 +49,12 @@ function defaultDateTime(): string {
 export function SessionWizard({
   teams,
   domains,
+  templateId = null,
 }: {
   teams: TeamOption[];
   domains: { code: DomainCode; labelFr: string }[];
+  /** Quand le coach part d'un modèle, son déroulé remplace la proposition. */
+  templateId?: string | null;
 }) {
   const router = useRouter();
   const [step, setStep] = useState(0);
@@ -95,6 +98,7 @@ export function SessionWizard({
     goalkeepersPresent,
     priorityDomains,
     theme,
+    templateId,
   });
 
   const goToPreview = () =>

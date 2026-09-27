@@ -15,8 +15,8 @@ propriété de **FUTURISTE ACADÉMIE FC**.
 | | |
 |---|---|
 | **Architecture** | ✅ validée par le fondateur le 16/09/2026 |
-| **Phases livrées** | 1 · 2 · 2b · 3 · 4 · 4b · 5 (sauf 5.4) · 6.1 à 6.6 |
-| **Phase en cours** | PHASE 6 — Session Studio : il reste les modèles de séance (6.7) |
+| **Phases livrées** | 1 · 2 · 2b · 3 · 4 · 4b · 5 (sauf 5.4) · **6 complète** |
+| **Phase en cours** | PHASE 7 — Mode Terrain et hors ligne |
 | **Langue MVP** | Français (anglais préparé dès le départ) |
 | **Installation** | Application web installable sur téléphone (PWA) — voir [`conf.md`](conf.md) |
 
@@ -24,8 +24,8 @@ propriété de **FUTURISTE ACADÉMIE FC**.
 
 ```
 44 tables · 6 vues · 16 enums
-116 contrôles de sécurité RLS
-327 tests unitaires
+129 contrôles de sécurité RLS
+343 tests unitaires
 6 paquets : core · diagrams · i18n · ui · supabase · web
 ```
 
@@ -54,7 +54,7 @@ pnpm --filter @futuriste/ui tokens   # régénère theme.css après un changemen
 
 # Base de données (sans Docker)
 pnpm db:reset          # crée la base, applique les 26 migrations, charge la démo
-pnpm db:test           # 🔒 joue les 12 tests de sécurité (116 contrôles)
+pnpm db:test           # 🔒 joue les 12 tests de sécurité (129 contrôles)
 pnpm db:types          # régénère les types TypeScript depuis le schéma
 pnpm db:seed:generate  # régénère le seed depuis packages/core
 ```
@@ -99,7 +99,7 @@ Ce que vous voyez est ce qui sera codé.
 | 6 vues de tableau de bord | ✅ | calcul dans la base, pas dans le téléphone |
 | Données de démonstration fictives | ✅ | générées depuis `packages/core` |
 | Types TypeScript | ✅ | 2 800 lignes générées depuis le schéma |
-| **🔒 Les 12 tests de sécurité** | ✅ | **116 contrôles au vert** |
+| **🔒 Les 12 tests de sécurité** | ✅ | **129 contrôles au vert** |
 
 ### Phase 2b — Authentification
 

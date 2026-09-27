@@ -9,7 +9,13 @@ import type {
   SessionPlan,
   SubmittedBlock,
 } from '@futuriste/core';
-import { checkSubmission, isStaffRole, planSession } from '@futuriste/core';
+import {
+  checkSubmission,
+  isStaffRole,
+  parseTemplateBlocks,
+  planFromTemplate,
+  planSession,
+} from '@futuriste/core';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { SUPABASE_UNAVAILABLE_MESSAGE } from '@/lib/supabase/config';
 import { getSessionProfile } from '@/lib/supabase/session';
@@ -24,6 +30,8 @@ export interface SessionRequestInput {
   goalkeepersPresent: number;
   priorityDomains: DomainCode[];
   theme: string;
+  /** Quand le coach part d'un modèle, son déroulé prime sur la proposition. */
+  templateId?: string | null;
 }
 
 export interface PlanResult {
@@ -103,13 +111,37 @@ export async function previewSession(input: SessionRequestInput): Promise<PlanRe
   if (!supabase) return { error: SUPABASE_UNAVAILABLE_MESSAGE };
 
   const exercises = await plannableExercises(supabase);
-  const plan = planSession(exercises, {
-    ageGroup: input.ageGroup,
-    durationMin: input.durationMin,
-    playersPresent: input.playersPresent,
-    goalkeepersPresent: input.goalkeepersPresent,
-    priorityDomains: input.priorityDomains,
-  });
+
+  let plan;
+  if (input.templateId) {
+    const { data: template } = await supabase
+      .from('session_templates')
+      .select('name, blocks')
+      .eq('id', input.templateId)
+      .maybeSingle();
+    if (!template) return { error: 'Ce modèle est introuvable dans votre académie.' };
+
+    // La colonne est du `jsonb` : la base garantit du JSON, pas un déroulé.
+    const parsed = parseTemplateBlocks(template.blocks);
+    if (!parsed.ok) {
+      return {
+        error:
+          `Ce modèle ne peut pas être ouvert : ${parsed.issues[0]!.path} ${parsed.issues[0]!.message}`.trim(),
+      };
+    }
+    plan = planFromTemplate(parsed.blocks, exercises, {
+      ageGroup: input.ageGroup,
+      playersPresent: input.playersPresent,
+    });
+  } else {
+    plan = planSession(exercises, {
+      ageGroup: input.ageGroup,
+      durationMin: input.durationMin,
+      playersPresent: input.playersPresent,
+      goalkeepersPresent: input.goalkeepersPresent,
+      priorityDomains: input.priorityDomains,
+    });
+  }
 
   const alternatives: Partial<Record<SessionPhase, PlannableExercise[]>> = {};
   for (const block of plan.blocks) {

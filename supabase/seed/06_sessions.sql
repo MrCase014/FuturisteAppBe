@@ -71,3 +71,9 @@ insert into session_exercises (id, session_id, exercise_id, phase, order_index,
    '1642031b-bb13-4943-8427-b7e5258e9a35', 'RETOUR_CALME', 7,
    5,
    null);
+
+-- Un modèle : le déroulé d'une séance, sans équipe ni date.
+insert into session_templates (id, academy_id, name, age_group_id, theme, blocks, created_by)
+values ('55eca1f8-d192-4ca7-b5ce-4c3497e86dd4', '206d70cf-eedc-4bea-94d5-1d11b6fe6247', 'Séance type U11 · occupation des espaces',
+  '63b4bdb2-3e28-44a5-9212-8e7ec9ef9618', 'Occupation des espaces',
+  '[{"phase":"ACCUEIL","durationMin":9,"exerciseId":"c21b47ec-08f9-4ad8-98b8-eed9b4c788c1"},{"phase":"ACTIVATION","durationMin":14,"exerciseId":"be9ec6b2-bdda-4b5a-b939-7a50fdc12e9a"},{"phase":"TECHNIQUE","durationMin":14,"exerciseId":"bcdeb0be-f5d6-4584-86f9-bc4897c48855"},{"phase":"JEU_REDUIT","durationMin":18,"exerciseId":"588c7a10-1e97-4a6c-90fb-7320a1608cec"},{"phase":"JEU_POSITION","durationMin":18,"exerciseId":"916dcdb3-d8c0-4831-a258-6b8251ba34b0"},{"phase":"SITUATION_REELLE","durationMin":14,"exerciseId":"860072f5-9380-484f-bcd3-232297cf873b"},{"phase":"RETOUR_CALME","durationMin":5,"exerciseId":"bf1a6814-3582-406c-865c-c6dd259d613b"}]'::jsonb, 'd3ea82dc-7f60-417f-9844-e32a162189e8');

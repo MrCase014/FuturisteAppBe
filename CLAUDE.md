@@ -23,7 +23,7 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 | 4 | Joueurs, équipes, catégories, coachs | ✅ fusionnée (PR #5) |
 | 4b | Personnel soignant et confidentialité médicale | ⏳ en revue (PR #6) |
 | 5 | Bibliothèque d'exercices | ⏳ 5.1, 5.2, 5.3, 5.5, 5.6, 5.7, 5.8, 5.9 livrés · reste 5.4 (vidéos), qui attend l'espace de stockage Supabase |
-| 6 | Session Studio | ⏳ en cours — 6.1 à 6.6 livrés (moteur, tests, assistant, timeline ajustable) · reste 6.7 (modèles de séance) |
+| 6 | Session Studio | ✅ complète — moteur, assistant, timeline ajustable, copie et modèles |
 
 `main` contient tout. Les branches de phase fusionnées ne servent plus.
 
@@ -31,8 +31,8 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 
 ```
 44 tables · 6 vues · 16 enums
-116 contrôles de sécurité RLS    (pnpm db:test)
-327 tests unitaires              (pnpm test)
+129 contrôles de sécurité RLS    (pnpm db:test)
+343 tests unitaires              (pnpm test)
 23 tâches turbo                  (lint typecheck test build)
 6 paquets                        core · diagrams · i18n · supabase · ui · web
 6 illustrations                  (apps/web/components/illustrations)
@@ -40,7 +40,7 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 
 Jeu de démonstration : 2 académies, 20 joueurs, 3 coachs, 3 équipes (dont 1 chez un concurrent, pour les tests de cloisonnement),
 7 catégories, 4 évaluations, 3 objectifs, 22 exercices, 3 schémas tactiques,
-2 séances,
+2 séances, 1 modèle de séance,
 20 sections de méthodologie, 1 médecin, 1 kiné. **0 présence** — normal, la
 prise de présence arrive en phase 7.
 
@@ -58,7 +58,7 @@ Dans cet ordre. Aucune exception : un contrôle rouge bloque la livraison.
 pnpm install                                  # jamais npm — voir règle 7
 pnpm db:reset                                 # base locale + schéma + démo
 pnpm db:types                                 # types générés depuis la base
-pnpm db:test                                  # 116 contrôles de sécurité
+pnpm db:test                                  # 129 contrôles de sécurité
 pnpm turbo run lint typecheck test build      # 23 tâches
 pnpm format:check                             # ou pnpm format pour corriger
 ```
@@ -326,6 +326,14 @@ un rondo prévu pour 10 se monte en trois carrés quand 24 sont présents, et le
 plan annonce le nombre d'ateliers. Sans cela, le coach arrive au terrain avec
 de quoi en monter un seul.
 
+Une séance se **duplique** (même équipe, nouvelle date) ou devient un
+**modèle** (ni équipe ni date — le patrimoine pédagogique du club). Les deux
+copient à partir des lignes lues EN BASE, jamais d'un contenu envoyé par le
+navigateur : dupliquer ne doit pas devenir un chemin détourné pour écrire ce
+qu'on veut. Le `blocks` d'un modèle est du `jsonb`, donc relu par
+`parseTemplateBlocks()` — tolérant sur un exercice disparu, strict sur la
+structure.
+
 À voir sans compte : **/maquettes/session-studio-moteur** (ce que le moteur
 propose) et **/maquettes/seance-ajustable** (ce que le coach en fait). Les deux
 font tourner le vrai code sur la vraie bibliothèque, trous compris.
@@ -522,7 +530,7 @@ pnpm dev             site web en développement
 pnpm dev:mobile      application mobile (Expo)
 pnpm db:reset        base locale : schéma + données de démonstration
 pnpm db:types        régénérer packages/supabase/database.types.ts
-pnpm db:test         116 contrôles de sécurité RLS
-pnpm test            327 tests unitaires
+pnpm db:test         129 contrôles de sécurité RLS
+pnpm test            343 tests unitaires
 pnpm format          corriger le formatage
 ```
