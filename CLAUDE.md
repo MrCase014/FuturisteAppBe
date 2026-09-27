@@ -24,6 +24,7 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 | 4b | Personnel soignant et confidentialité médicale | ⏳ en revue (PR #6) |
 | 5 | Bibliothèque d'exercices | ⏳ 5.1, 5.2, 5.3, 5.5, 5.6, 5.7, 5.8, 5.9 livrés · reste 5.4 (vidéos), qui attend l'espace de stockage Supabase |
 | 6 | Session Studio | ✅ complète — moteur, assistant, timeline ajustable, copie et modèles |
+| 7 | Mode Terrain et hors ligne | ⏳ en cours — 7.1 (stockage) et 7.3 (file de synchronisation) livrés |
 
 `main` contient tout. Les branches de phase fusionnées ne servent plus.
 
@@ -32,7 +33,7 @@ Langue de travail : **français**, y compris commits, PR et commentaires de code
 ```
 44 tables · 6 vues · 16 enums
 129 contrôles de sécurité RLS    (pnpm db:test)
-343 tests unitaires              (pnpm test)
+367 tests unitaires              (pnpm test)
 23 tâches turbo                  (lint typecheck test build)
 6 paquets                        core · diagrams · i18n · supabase · ui · web
 6 illustrations                  (apps/web/components/illustrations)
@@ -232,6 +233,39 @@ ne lit.
 Une section portant une clé inconnue — ajoutée à la main en base — se range
 à la fin plutôt que de disparaître. On ne perd jamais le travail de
 quelqu'un parce qu'on n'avait pas anticipé son besoin.
+
+---
+
+## HORS LIGNE — LA FILE D'ATTENTE
+
+`packages/core/src/offline/queue.ts`. Un dimanche matin, au bord d'un
+terrain, il n'y a pas de réseau. La promesse tient en une ligne : **rien de ce
+que le coach a saisi ne disparaît sans qu'on le lui dise.**
+
+Quatre règles, et elles se tiennent :
+
+1. **L'identifiant est tiré par le CLIENT, avant tout réseau.** C'est lui qui
+   rend un renvoi inoffensif — `client_generated_id` et sa contrainte
+   d'unicité en base.
+2. **Deux gestes sur la MÊME chose n'en font qu'un.** Présent, puis absent,
+   puis présent : UNE écriture part, la dernière. Sinon l'écran clignote au
+   retour du réseau et la base reçoit trois écritures pour une décision.
+3. **L'heure qui compte est celle du GESTE**, jamais celle de l'envoi. Une
+   présence saisie à 17h32 et transmise à 19h00 a eu lieu à 17h32 — confondre
+   les deux fausserait les retards, donc les statistiques, donc ce qu'on dira
+   aux familles.
+4. **Un refus définitif ne se réessaie pas indéfiniment.** Après six
+   tentatives, l'opération sort du cycle et devient VISIBLE. Elle n'est
+   jamais jetée : la jeter serait perdre le travail du coach en silence.
+
+Le stockage (`apps/web/lib/offline/store.ts`) est IndexedDB, et **tout échec
+y est silencieux, à dessein** : en navigation privée ou avec les données de
+site bloquées, la file vit en mémoire et l'ÉCRAN prévient. Une page d'erreur
+au milieu d'un appel serait pire que la perte qu'elle annonce.
+
+À essayer sans compte : **/maquettes/seance-hors-ligne** — faites l'appel
+réseau coupé, fermez l'onglet, rouvrez. L'appel se reconstruit DEPUIS LA
+FILE : il n'y a pas de seconde source à garder en parallèle.
 
 ---
 
@@ -531,6 +565,6 @@ pnpm dev:mobile      application mobile (Expo)
 pnpm db:reset        base locale : schéma + données de démonstration
 pnpm db:types        régénérer packages/supabase/database.types.ts
 pnpm db:test         129 contrôles de sécurité RLS
-pnpm test            343 tests unitaires
+pnpm test            367 tests unitaires
 pnpm format          corriger le formatage
 ```

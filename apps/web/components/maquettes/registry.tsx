@@ -13,6 +13,7 @@ import { MethodologieParAge } from './screens-methodologie';
 import { EditeurDeSchemas } from './screens-editeur';
 import { SessionStudioPropose } from './screens-session-studio';
 import { SeanceAjustable } from './screens-timeline';
+import { SeanceHorsLigne } from './screens-hors-ligne';
 
 export interface MaquetteEntry {
   slug: string;
@@ -142,6 +143,15 @@ export const MAQUETTES: readonly MaquetteEntry[] = [
     phase: 6,
     note: 'Déplacer, remplacer, raccourcir — et ce qui romprait une règle de la méthodologie est refusé sur-le-champ, avec la raison.',
     render: () => <SeanceAjustable />,
+  },
+  {
+    slug: 'seance-hors-ligne',
+    ref: 'C12',
+    title: 'La séance sans réseau',
+    role: 'Coach',
+    phase: 7,
+    note: 'Faites l’appel réseau coupé, fermez l’onglet, rouvrez : rien n’est perdu, et rien ne part deux fois.',
+    render: () => <SeanceHorsLigne />,
   },
   {
     slug: 'espace-joueur',

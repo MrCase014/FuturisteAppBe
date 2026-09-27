@@ -15,3 +15,4 @@ export * from './security/session-freshness';
 export * from './sessions/plan';
 export * from './sessions/edit';
 export * from './sessions/template';
+export * from './offline/queue';

@@ -15,8 +15,8 @@ propriété de **FUTURISTE ACADÉMIE FC**.
 | | |
 |---|---|
 | **Architecture** | ✅ validée par le fondateur le 16/09/2026 |
-| **Phases livrées** | 1 · 2 · 2b · 3 · 4 · 4b · 5 (sauf 5.4) · **6 complète** |
-| **Phase en cours** | PHASE 7 — Mode Terrain et hors ligne |
+| **Phases livrées** | 1 · 2 · 2b · 3 · 4 · 4b · 5 (sauf 5.4) · **6 complète** · 7.1 et 7.3 |
+| **Phase en cours** | PHASE 7 — le stockage et la file de synchronisation sont livrés, reste le Mode Terrain |
 | **Langue MVP** | Français (anglais préparé dès le départ) |
 | **Installation** | Application web installable sur téléphone (PWA) — voir [`conf.md`](conf.md) |
 
@@ -25,7 +25,7 @@ propriété de **FUTURISTE ACADÉMIE FC**.
 ```
 44 tables · 6 vues · 16 enums
 129 contrôles de sécurité RLS
-343 tests unitaires
+367 tests unitaires
 6 paquets : core · diagrams · i18n · ui · supabase · web
 ```
 
