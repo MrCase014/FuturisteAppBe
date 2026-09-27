@@ -271,6 +271,17 @@ export async function createSession(
     return { error: 'L’enregistrement des exercices a échoué. Rien n’a été conservé.' };
   }
 
+  // AUCUNE écriture dans `events` ici, et ce n'est pas un oubli.
+  //
+  // `attendance.event_id` pointe vers `events` : sans événement, l'appel est
+  // impossible. C'est le déclencheur `training_sessions_mirror_event`, dans le
+  // schéma, qui le fabrique — pour CE chemin, pour la duplication, pour les
+  // données de démonstration, et pour ceux qu'on n'a pas encore écrits.
+  //
+  // Le faire ici obligerait chaque nouveau chemin à s'en souvenir. Le premier
+  // qui oublierait livrerait à nouveau une séance dont l'appel ne marche pas,
+  // sans qu'aucune erreur ne le dise — c'est exactement ce que la phase 6 a
+  // fait. La règle appartient au schéma, pas à l'application.
   revalidatePath('/seances');
   return { id: sessionId, notice: 'Séance enregistrée.' };
 }

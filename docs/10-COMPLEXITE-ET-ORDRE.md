@@ -156,6 +156,15 @@ en moins de 20 secondes et comprend le schéma en moins de 10 secondes.
 **Test :** créer une séance U11 90 min en moins de 6 minutes.
 **Le moteur doit remonter les exercices liés aux objectifs actifs du groupe.**
 
+> ⚠️ **Un manque de cette phase, trouvé et comblé le 27/09.** Les séances
+> étaient bien enregistrées, mais **sans leur événement au calendrier** — et
+> `attendance.event_id` pointe vers `events`. L'appel de la phase 7 aurait été
+> impossible, sans qu'aucune erreur ne le dise. Le miroir séance → événement vit
+> désormais dans le schéma (ADR-24), pas dans l'application : toute séance, quel
+> que soit le chemin qui la crée, a son événement. Vingt présences sont entrées
+> dans le jeu de démonstration, sans quoi aucun contrôle de sécurité ne pouvait
+> atteindre `events` ni `attendance`.
+
 ### ▶️ PHASE 7 — Mode Terrain et hors ligne *(2 semaines)* 🔴
 ```
 7.1  Couche hors ligne (IndexedDB web)  ← ✅ livré (mobile en phase 11)
@@ -163,7 +172,7 @@ en moins de 20 secondes et comprend le schéma en moins de 10 secondes.
 7.3  File de synchronisation + anti-doublon  ← ✅ livré (moteur pur)
 7.4  Interface Mode Terrain
 7.5  Chronomètre + écran maintenu allumé
-7.6  Prise de présence tactile
+7.6  Prise de présence tactile  ← chemin de base prêt (événement + RLS vérifiés)
 7.7  🧪 TEST EN MODE AVION, SÉANCE COMPLÈTE
 ```
 **Test :** téléphone en mode avion pendant 90 minutes, séance complète animée,

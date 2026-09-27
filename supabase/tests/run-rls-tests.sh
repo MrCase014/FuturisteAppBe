@@ -665,6 +665,140 @@ check 30 "Il ne copie pas celle du coach 2 vers SON équipe" "0" \
             scheduled_at + interval '7 days', duration_min, origin
      from training_sessions where id = '$SEANCE_U13'")"
 
+# 31 · L'APPEL (phase 7.6). C'est le geste le plus fréquent du coach, et le
+#      plus exposé : il se fait au bord du terrain, souvent sans réseau, et il
+#      dit qui était là. Trois tables s'enchaînent — `training_sessions` porte
+#      la séance, `events` la place au calendrier, `attendance` la présence.
+#
+#      `attendance.event_id` pointe vers `events`, JAMAIS vers la séance. Tant
+#      que rien ne créait l'événement, l'appel était impossible sans qu'aucune
+#      erreur ne le dise : la phase 6 livrait des séances auxquelles on ne
+#      pouvait rien rattacher.
+#
+#      Ces contrôles étaient aussi IMPOSSIBLES À ÉCRIRE jusqu'ici : les deux
+#      tables étaient vides, et « une autre académie ne voit aucune présence »
+#      aurait été vrai avec une politique grande ouverte. Le jeu de
+#      démonstration les remplit désormais.
+
+EVENT_U11=$("${PSQL[@]}" -c "select id from events where session_id = '$SEANCE_U11';")
+JOUEUR_U11=$("${PSQL[@]}" -c "select a.player_id from attendance a
+   where a.event_id = '$EVENT_U11' limit 1;")
+JOUEUR_U13=$("${PSQL[@]}" -c "select a.player_id from attendance a
+   join events e on e.id = a.event_id
+   where e.session_id = '$SEANCE_U13' limit 1;")
+
+# Le calendrier. Un événement dit où et quand des enfants seront réunis : il se
+# lit par l'encadrement concerné et par les familles concernées, personne d'autre.
+check 31 "Chaque séance a son événement au calendrier" "0" \
+  "$("${PSQL[@]}" -c "select count(*) from training_sessions ts
+       where not exists (select 1 from events e where e.session_id = ts.id);")"
+check 31 "Le coach 1 ne voit au calendrier que l'événement de SON équipe" "1" \
+  "$(as_user "$COACH1" 'select count(*) from events;')"
+check 31 "Le directeur voit les deux" "2" \
+  "$(as_user "$DIRECTOR" 'select count(*) from events;')"
+check 31 "Le parent voit l'événement de l'équipe de son enfant" "1" \
+  "$(as_user "$PARENT_A" 'select count(*) from events;')"
+# L'autre académie a SON entraînement au calendrier. Le contrôle ne dit donc
+# plus « elle ne voit rien parce qu'il n'y a rien » : il dit que chacun voit le
+# sien et personne celui de l'autre. Sans cet événement voisin, il passerait
+# faute d'occasion.
+check 31 "Une autre académie ne voit que le sien" "1" \
+  "$(as_user "$OUTSIDER" 'select count(*) from events;')"
+check 31 "Un visiteur non authentifié non plus" "0" \
+  "$(as_user "" 'select count(*) from events;')"
+
+# Lecture des présences. Savoir qui était absent, et pourquoi, est une donnée
+# sur un enfant : elle suit exactement les mêmes règles que le reste du dossier.
+check 31 "Le coach 1 voit l'appel de SES dix joueurs, et pas celui du coach 2" "10" \
+  "$(as_user "$COACH1" 'select count(*) from attendance;')"
+check 31 "Le directeur voit les vingt" "20" \
+  "$(as_user "$DIRECTOR" 'select count(*) from attendance;')"
+check 31 "Le parent ne voit que la présence de SON enfant" "1" \
+  "$(as_user "$PARENT_A" 'select count(*) from attendance;')"
+check 31 "Sans consentement, un parent ne voit même pas si son enfant était là" "0" \
+  "$(as_user "$PARENT_C" 'select count(*) from attendance;')"
+check 31 "Le joueur voit sa propre présence, et seulement la sienne" "1" \
+  "$(as_user "$PLAYER" 'select count(*) from attendance;')"
+check 31 "Une autre académie ne voit aucune présence" "0" \
+  "$(as_user "$OUTSIDER" 'select count(*) from attendance;')"
+check 31 "Un visiteur non authentifié non plus" "0" \
+  "$(as_user "" 'select count(*) from attendance;')"
+
+# Correction d'un appel. C'est le geste que la file hors ligne rejoue le plus :
+# le coach pointe « absent », l'enfant arrive en retard, il corrige. Un UPDATE
+# refusé par RLS ne lève RIEN — il touche zéro ligne. On compte donc les lignes.
+check 31 "Le coach 1 corrige l'appel de SES joueurs" "10" \
+  "$(promotion "$COACH1" "update attendance set status='PRESENT', minutes_late=0
+     where event_id='$EVENT_U11'")"
+check 31 "Il ne corrige pas l'appel du coach 2" "0" \
+  "$(promotion "$COACH1" "update attendance set status='ABSENT_UNEXCUSED'
+     where player_id='$JOUEUR_U13'")"
+check 31 "La direction corrige n'importe quel appel de SON académie" "20" \
+  "$(promotion "$DIRECTOR" "update attendance set minutes_late=0")"
+check 31 "Un parent ne corrige pas la présence de son enfant" "0" \
+  "$(promotion "$PARENT_A" "update attendance set status='PRESENT'")"
+check 31 "Un joueur ne se déclare pas présent lui-même" "0" \
+  "$(promotion "$PLAYER" "update attendance set status='PRESENT'")"
+check 31 "Le médecin non plus : lire un dossier n'est pas faire l'appel" "0" \
+  "$(promotion "$DOCTOR" "update attendance set status='PRESENT'")"
+check 31 "Un visiteur non authentifié ne touche à rien" "0" \
+  "$(promotion "" "update attendance set status='PRESENT'")"
+
+# LE CHEMIN COMPLET DE LA PHASE 7.6, de bout en bout et sous RLS : le coach crée
+# une séance, le schéma lui fabrique son événement, et il pointe dessus. Trois
+# tables, trois politiques, un seul geste métier. C'est le contrôle qui dirait
+# « l'appel ne marche pas » AVANT qu'un coach ne le découvre au bord du terrain.
+#
+# Deux instructions, et non une seule à deux CTE : dans PostgreSQL, les CTE
+# d'une même instruction voient le MÊME instantané — l'INSERT sur `attendance`
+# n'y trouverait pas l'événement que le déclencheur vient tout juste de créer.
+appel_complet=$(as_user "$COACH1" "insert into training_sessions
+     (academy_id, team_id, age_group_id, coach_id, title, scheduled_at, duration_min)
+   values ('$DIRECTOR_ACADEMY', '$TEAM_U11', '$AG_U11', '$COACH1',
+           'Séance à pointer', now() + interval '1 day', 60);
+   with i as (insert into attendance (event_id, player_id, status, recorded_by,
+                                      client_generated_id)
+              select e.id, '$JOUEUR_U11', 'LATE', '$COACH1', gen_random_uuid()
+                from events e where e.title = 'Séance à pointer'
+              returning 1)
+   select count(*) from i;" | grep -Eo '^[0-9]+$' || echo 0)
+check 31 "Le coach crée une séance et pointe dessus : l'appel fonctionne" "1" "$appel_complet"
+
+check 31 "Il ne pointe pas un joueur du coach 2 sur SA séance" "0" \
+  "$(ecriture "$COACH1" "insert into attendance (event_id, player_id, status, recorded_by)
+     select e.id, '$JOUEUR_U13', 'PRESENT', '$COACH1'
+       from events e where e.session_id = '$SEANCE_U11'")"
+check 31 "Un parent ne pointe personne" "0" \
+  "$(ecriture "$PARENT_A" "insert into attendance (event_id, player_id, status, recorded_by)
+     select e.id, '$JOUEUR_U11', 'PRESENT', '$PARENT_A'
+       from events e where e.session_id = '$SEANCE_U11'")"
+check 31 "Un coach n'invente pas un événement dans l'académie voisine" "0" \
+  "$(ecriture "$COACH1" "insert into events (academy_id, team_id, type, title, starts_at)
+     values ('$OTHER_ACADEMY', '$TEAM_U11', 'TRAINING', 'Ingérence', now())")"
+
+# Le cadrage de l'appel portait sur le JOUEUR et sur le rôle, jamais sur
+# l'ÉVÉNEMENT. Un coach pouvait donc rattacher la présence d'un de ses joueurs
+# à un entraînement d'une autre académie : invisible chez le voisin, mais compté
+# dans NOS statistiques. `owns_event()` ferme ce chemin.
+EVENT_AUTRE=$("${PSQL[@]}" -c "select id from events where academy_id = '$OTHER_ACADEMY';")
+check 31 "Il ne pointe pas SON joueur sur l'événement de l'académie voisine" "0" \
+  "$(ecriture "$COACH1" "insert into attendance (event_id, player_id, status, recorded_by)
+     values ('$EVENT_AUTRE', '$JOUEUR_U11', 'PRESENT', '$COACH1')")"
+check 31 "La direction non plus : le cadrage vaut pour tout le monde" "0" \
+  "$(ecriture "$DIRECTOR" "insert into attendance (event_id, player_id, status, recorded_by)
+     values ('$EVENT_AUTRE', '$JOUEUR_U11', 'PRESENT', '$DIRECTOR')")"
+
+# Invariant structurel : le déclencheur qui fabrique l'événement doit rester
+# branché. Débranché, l'appel redevient impossible — et, comme la première
+# fois, sans qu'aucune erreur ne le dise.
+check "R" "Le miroir séance → événement est branché" "1" \
+  "$("${PSQL[@]}" -c "select count(*) from pg_trigger
+       where tgrelid = 'public.training_sessions'::regclass
+         and tgname = 'training_sessions_mirror_event' and not tgisinternal;")"
+check "R" "Une séance ne peut pas avoir deux événements" "1" \
+  "$("${PSQL[@]}" -c "select count(*) from pg_indexes
+       where schemaname='public' and indexname='events_one_per_session_idx';")"
+
 # Contrôle de complétude : aucune table ne doit échapper à RLS.
 check "R" "Aucune table sans RLS" "0" \
   "$("${PSQL[@]}" -c "select count(*) from pg_tables

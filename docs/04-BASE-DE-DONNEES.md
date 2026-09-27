@@ -5,9 +5,9 @@
 
 **44 tables, réparties en 12 domaines fonctionnels.**
 
-> ✅ **Appliqué et vérifié** : 26 migrations, 91 politiques RLS, 6 vues,
-> 16 types énumérés, 24 fonctions de sécurité. Les 12 tests de sécurité
-> passent — 129 contrôles (`pnpm db:test`). Le schéma décrit ci-dessous est
+> ✅ **Appliqué et vérifié** : 27 migrations, 91 politiques RLS, 6 vues,
+> 16 types énumérés, 30 fonctions de sécurité. Les 12 tests de sécurité
+> passent — 157 contrôles (`pnpm db:test`). Le schéma décrit ci-dessous est
 > celui qui tourne.
 
 ---
@@ -523,6 +523,53 @@ create table player_dna_profiles (
 ---
 
 ## 9. Domaine F — Calendrier, présences, matchs
+
+### Une séance est un événement au calendrier — le schéma s'en charge
+
+`attendance.event_id` pointe vers `events`, **jamais** vers `training_sessions`.
+C'est voulu : on fait l'appel à un entraînement, à un match, à une réunion —
+l'événement est le seul endroit où ces trois se ressemblent assez pour porter
+une présence.
+
+Conséquence : **une séance sans son événement est une séance dont l'appel est
+impossible.** La phase 6 créait des séances sans créer l'événement, et rien ne
+le disait — pas d'erreur, pas d'alerte, juste une fonctionnalité absente que le
+coach aurait découverte au bord du terrain.
+
+Le miroir vit donc dans le **schéma**, et non dans l'application :
+
+```sql
+create trigger training_sessions_mirror_event
+  after insert or update on training_sessions
+  for each row execute function futuriste.sync_session_event();
+
+create unique index events_one_per_session_idx on events (session_id)
+  where session_id is not null;
+```
+
+| Geste sur la séance | Effet sur l'événement |
+|---|---|
+| création | l'événement est créé, `type = TRAINING`, `ends_at = scheduled_at + duration_min` |
+| déplacement (date, durée, titre, lieu, équipe) | l'événement suit ; s'il a disparu, le déplacement est **refusé** |
+| suppression | l'événement part avec elle (`on delete cascade`), et les présences avec lui |
+
+**Pourquoi dans le schéma.** Une séance naît par le Session Studio, par la
+duplication, par les données de démonstration — demain par un import ou par la
+file hors ligne. Chacun de ces chemins devrait se souvenir de créer
+l'événement ; le premier qui oublie relivre le défaut. Ici la règle tient pour
+tout écrivain, y compris ceux qui n'existent pas encore.
+
+**Pourquoi `security definer`.** Le miroir n'est pas l'écriture d'un
+utilisateur, c'est le schéma qui garde deux tables d'accord — le droit a déjà
+été vérifié par `training_sessions_write`. Sans cela, un `update` bloqué par RLS
+ne lèverait rien : il toucherait **zéro ligne**, et l'événement resterait à
+l'ancienne date pendant que la séance a bougé.
+
+**L'index unique** rend impossible ce qui ne serait autrement que rare : deux
+événements pour une séance donneraient deux appels, donc des présences
+réparties entre les deux, donc des statistiques fausses que personne ne saurait
+expliquer. Il fait aussi apparaître la relation comme *un-à-un* dans les types
+générés, ce qui est exactement sa signification.
 
 ```sql
 create table events (
