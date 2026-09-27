@@ -15,8 +15,8 @@ propriété de **FUTURISTE ACADÉMIE FC**.
 | | |
 |---|---|
 | **Architecture** | ✅ validée par le fondateur le 16/09/2026 |
-| **Phases livrées** | 1 · 2 · 2b · 3 · 4 · 4b · 5 (sauf 5.4) · 6.1 et 6.2 |
-| **Phase en cours** | PHASE 6 — Session Studio : le moteur et ses tests sont livrés, restent l'assistant et la timeline |
+| **Phases livrées** | 1 · 2 · 2b · 3 · 4 · 4b · 5 (sauf 5.4) · 6.1 à 6.3 |
+| **Phase en cours** | PHASE 6 — Session Studio : le moteur, l'assistant et l'enregistrement sont livrés, reste la timeline réordonnable |
 | **Langue MVP** | Français (anglais préparé dès le départ) |
 | **Installation** | Application web installable sur téléphone (PWA) — voir [`conf.md`](conf.md) |
 
@@ -24,7 +24,7 @@ propriété de **FUTURISTE ACADÉMIE FC**.
 
 ```
 44 tables · 6 vues · 16 enums
-90 contrôles de sécurité RLS
+116 contrôles de sécurité RLS
 285 tests unitaires
 6 paquets : core · diagrams · i18n · ui · supabase · web
 ```
@@ -53,8 +53,8 @@ pnpm build       # compile le web et prépare le mobile
 pnpm --filter @futuriste/ui tokens   # régénère theme.css après un changement de palette
 
 # Base de données (sans Docker)
-pnpm db:reset          # crée la base, applique les 25 migrations, charge la démo
-pnpm db:test           # 🔒 joue les 12 tests de sécurité (90 contrôles)
+pnpm db:reset          # crée la base, applique les 26 migrations, charge la démo
+pnpm db:test           # 🔒 joue les 12 tests de sécurité (116 contrôles)
 pnpm db:types          # régénère les types TypeScript depuis le schéma
 pnpm db:seed:generate  # régénère le seed depuis packages/core
 ```
@@ -99,7 +99,7 @@ Ce que vous voyez est ce qui sera codé.
 | 6 vues de tableau de bord | ✅ | calcul dans la base, pas dans le téléphone |
 | Données de démonstration fictives | ✅ | générées depuis `packages/core` |
 | Types TypeScript | ✅ | 2 800 lignes générées depuis le schéma |
-| **🔒 Les 12 tests de sécurité** | ✅ | **90 contrôles au vert** |
+| **🔒 Les 12 tests de sécurité** | ✅ | **116 contrôles au vert** |
 
 ### Phase 2b — Authentification
 

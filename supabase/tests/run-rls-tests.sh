@@ -473,9 +473,142 @@ check "R" "Aucune colonne médicale sur la table players" "0" \
 # Invariant structurel : plus fort qu'un test sur des données, car il tient
 # même sur une table vide — et c'est précisément sur des tables vides qu'un
 # test de données donne une fausse assurance.
+# Invariant de classe. Neuf politiques ont perdu leur branche « coach » le
+# 19/09 sans que rien ne le dise. Celles-ci ne PEUVENT plus se limiter à la
+# direction : une écriture réservée à la direction sur le quotidien du coach
+# est un produit qui ne sert à personne. Il couvre aussi les tables encore
+# vides — présences, badges, défis, matchs — qu'aucun contrôle de comportement
+# ne peut atteindre aujourd'hui.
+check "R" "Le quotidien du coach ne se réserve pas à la direction" "0" \
+  "$("${PSQL[@]}" -c "select count(*) from pg_policies
+       where schemaname='public'
+         and policyname in ('attendance_write','pes_write','pgc_write',
+                            'player_badges_write','player_challenges_write',
+                            'session_exercises_write','match_events_write',
+                            'match_players_write')
+         and (coalesce(qual,'')||coalesce(with_check,''))
+             not similar to '%(coaches_|wrote_evaluation_recently)%';")"
+
 check "R" "Aucune politique UPDATE sans WITH CHECK explicite" "0" \
   "$("${PSQL[@]}" -c "select count(*) from pg_policies
        where schemaname='public' and cmd in ('UPDATE','ALL') and with_check is null;")"
+
+# 27 · SÉANCES (6.3, le Session Studio écrit enfin en base). Une séance dit où
+#      et quand des enfants seront réunis, et avec quel encadrant : ce n'est
+#      pas une donnée anodine. Et un coach qui pourrait réécrire la séance
+#      d'un autre casserait la confiance avant de casser la base.
+TEAM_U11=$("${PSQL[@]}" -c "select id from teams where name = 'U11 Filles A';")
+TEAM_U13=$("${PSQL[@]}" -c "select id from teams where name = 'U13 Mixte A';")
+SEANCE_U11=$("${PSQL[@]}" -c "select id from training_sessions where title like 'U11%';")
+SEANCE_U13=$("${PSQL[@]}" -c "select id from training_sessions where title like 'U13%';")
+AG_U11=$("${PSQL[@]}" -c "select age_group_id from teams where id = '$TEAM_U11';")
+
+nouvelle_seance() { # $1 = acteur ; $2 = équipe ; $3 = académie
+  ecriture "$1" "insert into training_sessions
+     (academy_id, team_id, age_group_id, coach_id, title, scheduled_at, duration_min)
+     values ('$3', '$2', '$AG_U11', '$1', 'Séance de contrôle', now(), 90)"
+}
+
+check 27 "Le coach 1 prépare une séance pour SON équipe" "1" \
+  "$(nouvelle_seance "$COACH1" "$TEAM_U11" "$DIRECTOR_ACADEMY")"
+check 27 "Le coach 1 ne prépare pas la séance de l'équipe du coach 2" "0" \
+  "$(nouvelle_seance "$COACH1" "$TEAM_U13" "$DIRECTOR_ACADEMY")"
+check 27 "Le coach 1 ne prépare rien dans l'académie voisine" "0" \
+  "$(nouvelle_seance "$COACH1" "$TEAM_U11" "$OTHER_ACADEMY")"
+check 27 "Le directeur prépare pour n'importe quelle équipe de SON académie" "1" \
+  "$(nouvelle_seance "$DIRECTOR" "$TEAM_U13" "$DIRECTOR_ACADEMY")"
+check 27 "Un parent ne prépare pas de séance" "0" \
+  "$(nouvelle_seance "$PARENT_A" "$TEAM_U11" "$DIRECTOR_ACADEMY")"
+check 27 "Un joueur non plus" "0" \
+  "$(nouvelle_seance "$PLAYER" "$TEAM_U11" "$DIRECTOR_ACADEMY")"
+check 27 "Le médecin non plus : soigner n'est pas entraîner" "0" \
+  "$(nouvelle_seance "$DOCTOR" "$TEAM_U11" "$DIRECTOR_ACADEMY")"
+check 27 "Un visiteur non authentifié encore moins" "0" \
+  "$(nouvelle_seance "" "$TEAM_U11" "$DIRECTOR_ACADEMY")"
+
+check 27 "Le coach 1 ne réécrit pas la séance du coach 2" "0" \
+  "$(promotion "$COACH1" "update training_sessions set title='réécrite' where id='$SEANCE_U13'")"
+check 27 "Il corrige bien la sienne" "1" \
+  "$(promotion "$COACH1" "update training_sessions set title='ma correction' where id='$SEANCE_U11'")"
+check 27 "Le coach 1 n'ajoute pas de bloc à la séance du coach 2" "0" \
+  "$(ecriture "$COACH1" "insert into session_exercises (session_id, phase, order_index, duration_min)
+     values ('$SEANCE_U13', 'ACCUEIL', 99, 10)")"
+check 27 "Il en ajoute un à la sienne" "1" \
+  "$(ecriture "$COACH1" "insert into session_exercises (session_id, phase, order_index, duration_min)
+     values ('$SEANCE_U11', 'ACCUEIL', 99, 10)")"
+
+# Lecture : une séance se lit AUSSI par les familles concernées — c'est leur
+# enfant qui s'entraîne. Mais seulement les leurs.
+check 27 "Le coach 1 ne voit que sa séance" "1" \
+  "$(as_user "$COACH1" 'select count(*) from training_sessions;')"
+check 27 "Le directeur voit les deux" "2" \
+  "$(as_user "$DIRECTOR" 'select count(*) from training_sessions;')"
+check 27 "Le parent voit la séance de l'équipe de son enfant" "1" \
+  "$(as_user "$PARENT_A" 'select count(*) from training_sessions;')"
+check 27 "Une autre académie n'en voit aucune" "0" \
+  "$(as_user "$OUTSIDER" 'select count(*) from training_sessions;')"
+check 27 "Un visiteur non authentifié non plus" "0" \
+  "$(as_user "" 'select count(*) from training_sessions;')"
+
+# 28 · LE QUOTIDIEN DU COACH. Ces chemins d'écriture avaient tous perdu leur
+#      branche « coach » le 19/09, quand le cloisonnement par académie a
+#      remplacé `is_staff() OR coaches_…` par `is_staff() AND owns_…`. Huit
+#      jours sans que rien ne le signale : aucune de ces tables n'avait de
+#      contrôle. Les voici.
+EVAL_COACH1=$("${PSQL[@]}" -c "select id from player_evaluations where evaluator_id = '$COACH1' limit 1;")
+EVAL_COACH2=$("${PSQL[@]}" -c "select id from player_evaluations where evaluator_id = '$COACH2' limit 1;")
+# Une compétence PAS ENCORE notée sur cette évaluation. Sans cette précaution,
+# l'écriture échouerait sur la contrainte d'unicité, et le contrôle vaudrait
+# zéro pour une raison qui n'a rien à voir avec le droit testé — c'est
+# exactement ce qui s'est produit à la première écriture de ces contrôles.
+libre() { # $1 = évaluation
+  "${PSQL[@]}" -c "select c.id from competencies c
+     where not exists (select 1 from player_evaluation_scores s
+                       where s.evaluation_id = '$1' and s.competency_id = c.id)
+     limit 1;"
+}
+COMP_LIBRE_1=$(libre "$EVAL_COACH1")
+COMP_LIBRE_2=$(libre "$EVAL_COACH2")
+GOAL_COACH1=$("${PSQL[@]}" -c "select g.id from player_goals g
+   join player_team_memberships ptm on ptm.player_id = g.player_id
+   join team_coaches tc on tc.team_id = ptm.team_id
+   where tc.coach_id = '$COACH1' limit 1;")
+GOAL_COACH2=$("${PSQL[@]}" -c "select g.id from player_goals g
+   join player_team_memberships ptm on ptm.player_id = g.player_id
+   join team_coaches tc on tc.team_id = ptm.team_id
+   where tc.coach_id = '$COACH2' limit 1;")
+
+check 28 "Le coach complète SON évaluation, dans les 48 heures" "1" \
+  "$(ecriture "$COACH1" "insert into player_evaluation_scores (evaluation_id, competency_id, level)
+     values ('$EVAL_COACH1', '$COMP_LIBRE_1', 3)")"
+check 28 "Il ne complète pas celle du coach 2" "0" \
+  "$(ecriture "$COACH1" "insert into player_evaluation_scores (evaluation_id, competency_id, level)
+     values ('$EVAL_COACH2', '$COMP_LIBRE_2', 3)")"
+check 28 "Un parent n'écrit aucune note" "0" \
+  "$(ecriture "$PARENT_A" "insert into player_evaluation_scores (evaluation_id, competency_id, level)
+     values ('$EVAL_COACH1', '$COMP_LIBRE_1', 5)")"
+check 28 "La direction complète aussi, sans limite de délai" "1" \
+  "$(ecriture "$DIRECTOR" "insert into player_evaluation_scores (evaluation_id, competency_id, level)
+     values ('$EVAL_COACH2', '$COMP_LIBRE_2', 3)")"
+
+# Le délai de 48 heures : une évaluation figée ne se réécrit plus, même par son
+# auteur. On vieillit la ligne dans la transaction, puis on tente d'écrire.
+fige=$(as_user "$COACH1" "update player_evaluations set created_at = now() - interval '5 days'
+     where id = '$EVAL_COACH1';
+   with i as (insert into player_evaluation_scores (evaluation_id, competency_id, level)
+              values ('$EVAL_COACH1', '$COMP_LIBRE_1', 1) returning 1)
+   select count(*) from i;" | grep -Eo '^[0-9]+$' || echo 0)
+check 28 "Passé 48 heures, l'évaluation est figée, même pour son auteur" "0" "$fige"
+
+check 28 "Le coach suit l'objectif d'un de SES joueurs" "1" \
+  "$(ecriture "$COACH1" "insert into player_goal_checkins (goal_id, rating, created_by)
+     values ('$GOAL_COACH1', 3, '$COACH1')")"
+check 28 "Il ne suit pas l'objectif d'un joueur du coach 2" "0" \
+  "$(ecriture "$COACH1" "insert into player_goal_checkins (goal_id, rating, created_by)
+     values ('$GOAL_COACH2', 3, '$COACH1')")"
+check 28 "Un parent ne note pas la progression de son enfant" "0" \
+  "$(ecriture "$PARENT_A" "insert into player_goal_checkins (goal_id, rating, created_by)
+     values ('$GOAL_COACH1', 5, '$PARENT_A')")"
 
 # Contrôle de complétude : aucune table ne doit échapper à RLS.
 check "R" "Aucune table sans RLS" "0" \

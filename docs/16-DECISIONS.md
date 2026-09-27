@@ -206,6 +206,24 @@ garde-fou pédagogique le désarme tout en donnant l'illusion contraire.
 le sait AVANT la séance. Le jour où la bibliothèque portera l'information, ces
 règles passeront d'une liste à l'autre sans changer une ligne d'interface.
 
+### ADR-23 🟢 · Une politique RLS s'écrit « cloisonnement ET (direction OU branche légitime) »
+**Décision (27/09/2026) :** toute politique d'écriture prend la forme
+`owns_X(...) and (is_staff() or <branche légitime>)`. Le cloisonnement par
+académie s'applique à tout le monde ; les rôles se lisent à l'intérieur.
+**Raison :** en fermant une vraie faille le 19/09, une réécriture a transformé
+`is_staff() or coaches_player(...)` en `is_staff() and owns_player(...)` sur
+neuf politiques. La condition d'académie a remplacé la branche du coach au lieu
+de s'y ajouter : un coach ne pouvait plus faire l'appel, évaluer, valider un
+objectif ni enregistrer sa séance. Écrire `is_staff() and owns_X(...)` revient
+à dire que seule la direction existe — ce qui n'est vrai d'aucune de ces tables.
+**Deux garde-fous ajoutés avec le correctif :**
+- un **invariant structurel** qui refuse qu'une politique du quotidien du coach
+  se limite à la direction — il couvre les tables encore vides, qu'aucun
+  contrôle de comportement ne peut atteindre ;
+- deux séances dans le jeu de démonstration, car **une table sans données de
+  démonstration est une table sans contrôle** : c'est ce vide qui a laissé la
+  régression passer huit jours.
+
 ---
 
 ## Les 3 décisions tranchées par le fondateur

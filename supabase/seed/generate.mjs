@@ -475,6 +475,89 @@ sql +=
 
 writeFileSync(join(here, '05_library.sql'), sql);
 
+// ── 06 · Deux séances de démonstration ──────────────────────────────────────
+//
+// Jusqu'ici le jeu de démonstration n'en comptait aucune : la phase 6 n'était
+// pas livrée, et une séance vide n'aurait rien montré. Elle l'est, et deux
+// séances sont désormais nécessaires — pour que /seances ne s'ouvre pas vide,
+// et surtout pour que les contrôles de sécurité puissent vérifier qu'un coach
+// ne touche PAS à la séance d'un autre. Sans deux séances appartenant à deux
+// coachs différents, ce contrôle ne peut pas être écrit.
+//
+// Le choix des exercices ci-dessous est un choix de DÉMONSTRATION, et non le
+// moteur : le générateur est un script, il ne compile pas TypeScript. Les
+// blocs reprennent en revanche les mêmes phases et les mêmes proportions.
+const PHASE_RATIOS = [
+  ['ACCUEIL', 0.1],
+  ['ACTIVATION', 0.15],
+  ['TECHNIQUE', 0.15],
+  ['JEU_REDUIT', 0.2],
+  ['JEU_POSITION', 0.2],
+  ['SITUATION_REELLE', 0.15],
+  ['RETOUR_CALME', 0.05],
+];
+
+const DEMO_SESSIONS = [
+  {
+    key: 'sess:u11',
+    team: 'teamU11',
+    ageGroup: 'U11',
+    coach: 'coach1',
+    title: 'U11 · occupation des espaces',
+    theme: 'Occupation des espaces',
+    durationMin: 90,
+    playersExpected: 14,
+    // Date fixe : un jeu de démonstration doit se rejouer à l'identique.
+    scheduledAt: '2026-10-01 17:30:00+00',
+  },
+  {
+    key: 'sess:u13',
+    team: 'teamU13',
+    ageGroup: 'U13',
+    coach: 'coach2',
+    title: 'U13 · sortir sous pression',
+    theme: 'Sortie de pressing',
+    durationMin: 90,
+    playersExpected: 16,
+    scheduledAt: '2026-10-02 18:00:00+00',
+  },
+];
+
+const sessionRows = [];
+const blockRows = [];
+
+for (const session of DEMO_SESSIONS) {
+  const ageGroupId = uuid('ag:' + session.ageGroup);
+  sessionRows.push(`  (${q(uuid(session.key))}, ${q(ACADEMY)}, ${q(uuid('team:' + session.team))},
+   ${q(ageGroupId)}, ${q(uuid('u:' + session.coach))}, ${q(session.title)},
+   ${q(session.scheduledAt)}, ${session.durationMin}, ${q(session.theme)},
+   ${session.playersExpected}, 'PLANNED', 'RULE_ENGINE', ${q(uuid('u:' + session.coach))})`);
+
+  let order = 0;
+  for (const [phase, ratio] of PHASE_RATIOS) {
+    order += 1;
+    // Premier exercice de la bibliothèque qui convient à cette phase ET à
+    // cette catégorie. Aucun ? le bloc reste sans exercice — c'est exactement
+    // ce que le coach verra, et l'écran sait l'afficher.
+    const match = exercises.find(
+      (e) => e.phase === phase && e.ageGroups.includes(session.ageGroup),
+    );
+    blockRows.push(`  (${q(uuid(session.key + ':' + phase))}, ${q(uuid(session.key))},
+   ${match ? q(uuid('ex:' + match.slug)) : 'null'}, ${q(phase)}, ${order},
+   ${Math.round(session.durationMin * ratio)},
+   ${match ? 'null' : q(phase + ' — à compléter')})`);
+  }
+}
+
+sql = header('06 · Séances de démonstration');
+sql += `\ninsert into training_sessions (id, academy_id, team_id, age_group_id, coach_id,
+  title, scheduled_at, duration_min, theme, players_expected, status, origin, created_by) values\n`;
+sql += sessionRows.join(',\n') + ';\n\n';
+sql += `insert into session_exercises (id, session_id, exercise_id, phase, order_index,
+  duration_min, custom_title) values\n`;
+sql += blockRows.join(',\n') + ';\n';
+writeFileSync(join(here, '06_sessions.sql'), sql);
+
 console.log(
-  `seed généré — ${domains.length} domaines, ${compRows.length} compétences, ${players.length} joueurs, ${exercises.length} exercices, ${diagrams.length} schémas, ${Object.values(methodology.byAgeGroup).flat().length} sections de méthodologie, 5 fichiers + amorçage production.`,
+  `seed généré — ${domains.length} domaines, ${compRows.length} compétences, ${players.length} joueurs, ${exercises.length} exercices, ${diagrams.length} schémas, ${Object.values(methodology.byAgeGroup).flat().length} sections de méthodologie, ${DEMO_SESSIONS.length} séances, 6 fichiers + amorçage production.`,
 );

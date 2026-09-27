@@ -5,9 +5,9 @@
 
 **44 tables, réparties en 12 domaines fonctionnels.**
 
-> ✅ **Appliqué et vérifié** : 25 migrations, 91 politiques RLS, 6 vues,
+> ✅ **Appliqué et vérifié** : 26 migrations, 91 politiques RLS, 6 vues,
 > 16 types énumérés, 24 fonctions de sécurité. Les 12 tests de sécurité
-> passent — 90 contrôles (`pnpm db:test`). Le schéma décrit ci-dessous est
+> passent — 116 contrôles (`pnpm db:test`). Le schéma décrit ci-dessous est
 > celui qui tourne.
 
 ---

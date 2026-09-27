@@ -40,7 +40,7 @@ export interface NavigationEntry {
 export const MAX_NAVIGATION_ENTRIES = 5;
 
 /** Phase actuellement livrée. Les entrées au-delà sont désactivées. */
-export const DELIVERED_PHASE = 4;
+export const DELIVERED_PHASE = 6;
 
 const ACCUEIL: NavigationEntry = {
   key: 'accueil',
