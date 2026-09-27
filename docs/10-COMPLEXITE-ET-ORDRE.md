@@ -158,9 +158,9 @@ en moins de 20 secondes et comprend le schéma en moins de 10 secondes.
 
 ### ▶️ PHASE 7 — Mode Terrain et hors ligne *(2 semaines)* 🔴
 ```
-7.1  Couche hors ligne (SQLite mobile / IndexedDB web)
+7.1  Couche hors ligne (IndexedDB web)  ← ✅ livré (mobile en phase 11)
 7.2  Pré-téléchargement d'une séance
-7.3  File d'attente de synchronisation + anti-doublon
+7.3  File de synchronisation + anti-doublon  ← ✅ livré (moteur pur)
 7.4  Interface Mode Terrain
 7.5  Chronomètre + écran maintenu allumé
 7.6  Prise de présence tactile
